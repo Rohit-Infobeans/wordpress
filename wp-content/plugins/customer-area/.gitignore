@@ -1,0 +1,8 @@
+.buildpath
+.project
+.settings
+.svn
+.transifexrc
+node_modules/
+assets/admin/js/customer-area.js.map
+assets/frontend/js/customer-area.js.map
