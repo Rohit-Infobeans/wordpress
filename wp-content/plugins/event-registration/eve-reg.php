@@ -9,23 +9,26 @@
  */
 
  //Used for including js
+ 
 function wptuts_scripts_load_cdn()
 {
     // Register the library again from Google's CDN
     wp_register_script( 'jquery', 'http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js', array(), null, false );
-    wp_register_style( 'jqueryui', 'http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css', array(), '1.4' );
+  
     
     // Register the script like this for a plugin:
     wp_register_script( 'ui-script', plugins_url( 'js/jqueryui.js', __FILE__ ), array( 'jquery' ) );
     wp_register_script( 'custom-script', plugins_url( 'js/script.js', __FILE__ ), array( 'jquery' ) );
-    
     wp_register_style( 'eve-style', plugins_url( 'css/eve-reg.css', __FILE__ ) );
    
     // For either a plugin or a theme, you can then enqueue the script:
     wp_enqueue_script( 'ui-script' );
     wp_enqueue_script( 'custom-script' );
-    
     wp_enqueue_style( 'eve-style' );
+	
+	wp_enqueue_script('jquery-ui-datepicker');	
+	wp_enqueue_style('jquery-ui-css', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
+	
 }
 add_action( 'wp_enqueue_scripts', 'wptuts_scripts_load_cdn' );
 
@@ -43,7 +46,7 @@ add_action( 'wp_enqueue_scripts', 'wptuts_scripts_load_cdn' );
             </div>
             <div class="input-text">
                   <div class="checkout-buttons clearfix">  
-                      <input type="text" id="datepicker" />
+                      <input type="text" class="custom_date" name="start_date" value=""/>
                       
                       <label for="pickuptime">Choose a pick-up time:</label>
                       <input type="text" id="pickuptime" name="attributes[Pickup_Time]" value="" />
