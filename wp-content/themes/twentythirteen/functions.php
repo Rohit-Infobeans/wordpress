@@ -94,7 +94,12 @@ function twentythirteen_setup() {
 	) );
 
 	// This theme uses wp_nav_menu() in one location.
-	register_nav_menu( 'primary', __( 'Navigation Menu', 'twentythirteen' ) );
+
+      register_nav_menus( array(
+      'primary' => __( 'Navigation Menu', 'twentythirteen' ),
+      'main' => __('Main Menu', 'twentythirteen' ),
+      'visitor' => __('Visitor Menu', 'twentythirteen' )
+      ) );
 
 	/*
 	 * This theme uses a custom image size for featured images, displayed on
