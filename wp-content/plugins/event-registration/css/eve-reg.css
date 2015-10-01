@@ -1,22 +1,13 @@
 div {
         margin-bottom:2px;
     }
-     
+     .ba
     .input-text 
         {
             display: block;
             margin-bottom: 20px;
+            clear:both;
         }
-        .input-text label 
-        {
-            display: block;
-            font-weight: 500;
-            color: #999;
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
         .input-text input[type="text"] 
         {
             outline: none;
@@ -88,7 +79,30 @@ div {
         width: 100px;
         background: orange;
         }
+        #fdate
+        {
+              width: 45%;
+              float:left;
+              display:inline-block;
+              margin-right:10%;
+        }
+        #ftime
+        {
+              width:45%;              
+        }
+         #tdate
+        {
+              width: 45%;
+              float:left;
+              display:inline-block;
+              margin-right:10%;
+        }
+        #ttime
+        {
+              width:45%;     
+        }
         
-        
-        
-        
+        .selectivity-input {
+    display: inline-block;
+    width: 250px;
+}
