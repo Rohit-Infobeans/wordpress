@@ -11,10 +11,7 @@ function registration_validation( $eve_title, $eve_sdate, $eve_stime, $eve_tdate
       {
             $reg_errors->add( 'eventtitle_length', 'Event title too short' );
       }
-      if ( eventtitle_exists( $eve_title ) )
-      {
-            $reg_errors->add('user_name', 'Sorry, that username already exists!');
-      }
+     
       if ( is_wp_error( $reg_errors ) ) 
       {
  

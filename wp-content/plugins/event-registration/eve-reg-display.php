@@ -56,13 +56,10 @@ add_action( 'wp_enqueue_scripts', 'wptuts_scripts_load_cdn' );
                   <span id="generror"></span>
             </div>
             <div class="input-text" id="basicExample">
-                  
-                    <input type="text" class="custom_date" name="to_date" placeholder="From Date" id="fdate" value="'.( isset( $_POST['to_date'] ) ? $eve_tdate : null ).'"/>
-                    <input type="text" class="time start" id="ftime"  placeholder="Start Time"/>
+                    <input type="text" class="custom_date" name="start_date" placeholder="From Date" id="fdate" value="'.( isset( $_POST['start_date'] ) ? $eve_sdate : null ).'"/>
+                    <input type="text" class="time start" id="ftime"  placeholder="Start Time"  name="start_time" value = "'.( isset( $_POST['start_time'] ) ? $eve_stime : null ) .'"/>
                     <input type="text" class="custom_date" name="to_date" placeholder="To Date" id="tdate" value="'.( isset( $_POST['to_date'] ) ? $eve_tdate : null ).'"/>
-                    <input type="text" class="time end" id="ttime" placeholder="End Time"/>
-                    
-
+                    <input type="text" class="time end" id="ttime" placeholder="End Time" name="to_time" value="'.( isset( $_POST['to_time'] ) ? $eve_ttime : null ).'"/>
                 <script>
                     // initialize input widgets first
                       $("#basicExample .time").timepicker({
@@ -83,17 +80,17 @@ add_action( 'wp_enqueue_scripts', 'wptuts_scripts_load_cdn' );
                 <span id="proerror"></span>
             </div>
             <div class="input-text">
-                <input type="text" id="venue" onblur="lnCheck()" placeholder="Venue" value="'.( isset( $_POST['venue'] ) ? $eve_venue : null ).'"/><br />
+                <input type="text" id="venue" name="venue" placeholder="Venue" value="'.( isset( $_POST['venue'] ) ? $eve_venue : null ).'"/><br />
                 <span id="lnerror"></span>
             </div>
             <div class="input-text">
-                  <select id="multiple-select-box" class="selectivity-input" data-placeholder="Add Guests" name="traditional[multiple]" multiple >';
+                  <select id="multiple-select-box" class="selectivity-input" data-placeholder="Add Guests" name="traditional[]" multiple >';
                         global $wpdb;
                         /* wpdb class should not be called directly.global $wpdb variable is an instantiation of the class already set up to talk to the WordPress database */ 
                         $result = $wpdb->get_results( "SELECT * FROM wp_users "); /*mulitple row results can be pulled from the database with get_results function and outputs an object which is stored in $result */
                         foreach($result as $row)
                         {
-                              echo '<option value="'.$row->user_email.'">'.$row->display_name.'</option>';
+                              echo '<option value="'.$row->ID.'">'.$row->display_name.'</option>';
                         }
                   echo '</select>
                   
@@ -101,11 +98,11 @@ add_action( 'wp_enqueue_scripts', 'wptuts_scripts_load_cdn' );
             </div>
             
             <div class="input-text">
-                <textarea placeholder="Event Description" rows="6" cols="100"></textarea>
+                <textarea placeholder="Event Description" rows="6" cols="100" name="desc"></textarea>
                 <span id="doperror"></span>
             </div>
             <div class="input-text">
-                <button id="submit">Create Event</button>
+                <input type="submit" name="submit" value="Register"/>
             </div>
     
     </form>
