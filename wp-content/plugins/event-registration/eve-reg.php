@@ -9,6 +9,7 @@
  */
  //Used for including js
  
+<<<<<<< HEAD
 $dir = plugin_dir_path( __FILE__ );
 require_once($dir.'eve-reg-display.php');
 require_once($dir.'event_list.php');
@@ -44,6 +45,8 @@ require_once($dir.'event_list.php');
 // this hook will cause our creation function to run when the plugin is activated
 register_activation_hook( __FILE__, 'event_manager' );
 //--------------------------------------------------------------------------------------------------
+
+
 
 //Function to insert data in table
 function complete_registration() {
@@ -91,6 +94,8 @@ function complete_registration() {
     // Actually attempt to insert the data
     $wpdb->insert($tablename, $data, $formats);
 }
+
+
 function custom_registration_function() {
     if ( isset($_POST['submit'] ) ) {
         registration_validation(
@@ -115,6 +120,10 @@ function custom_registration_function() {
         $users   =   $_POST['traditional'] ;
         $desc        =   $_POST['desc'] ;
         $status = 0;
+        
+        mail_event(
+        
+        );
  
         // call @function complete_registration to create the user
         // only when no WP_error is found
