@@ -8,9 +8,9 @@
   Author URI: http://tech4sky.com
  */
  
- //$dir = plugin_dir_path( __FILE__ );
-//require_once($dir.'backend_create.php');
-//require_once($dir.'backend_events.php');
+ $dir = plugin_dir_path( __FILE__ );
+require_once($dir.'backend_create.php');
+require_once($dir.'backend_events.php');
  
  function scripts_load_cdn()
 {
