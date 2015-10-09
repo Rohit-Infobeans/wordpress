@@ -89,7 +89,6 @@ function registration_validation( $eve_title, $eve_sdate, $eve_stime, $eve_tdate
       }
 }
 
-
 //Function to insert data in table
 function complete_registration() 
 {
@@ -436,7 +435,13 @@ function edit_event()
             $eve_users,
             $desc
       );
+	
+            wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me/');
+            exit;
+      
 }
+
+
 
 //For creating event
 add_shortcode( 'cr_custom_registration', 'custom_registration_shortcode' ); 
