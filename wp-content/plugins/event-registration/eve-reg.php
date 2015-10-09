@@ -14,18 +14,20 @@ require_once($dir.'eve-reg-display.php');
 require_once($dir.'event_list.php');
 require_once($dir.'invitation.php');
 
+
 //Used to create table for plugin when activated
 function event_manager()
 {
       // do NOT forget this global
       global $wpdb;
-      $appointment = $wpdb->prefix.  'event_reg';
+      define('WP_CALENDAR_TABLE', $wpdb->prefix . 'calendar');
+      
       $eveuser = $wpdb->prefix.  'event_users';
       // this if statement makes sure that the table doe not exist already
       if($wpdb->get_var("show tables like my_table_name") != $appointment) 
       {
             $sql = "CREATE TABLE $appointment (
-            `Eve_id` varchar(9) NOT NULL,
+            `Eve_id` int(9) NOT NULL AUTO_INCREMENT,
             `Eve_Title` varchar(50), 
             `Eve_Desc` varchar(200),
             `Eve_Venue` varchar(100),
@@ -56,74 +58,155 @@ function event_manager()
 register_activation_hook( __FILE__, 'event_manager' );
 //--------------------------------------------------------------------------------------------------
 
+//Validations
+function registration_validation( $eve_title, $eve_sdate, $eve_stime, $eve_tdate, $eve_ttime, $eve_venue, $eve_users)  
+{
+      global $reg_errors;
+      $reg_errors = new WP_Error;
+      if ( empty( $eve_title ) || empty( $eve_sdate ) || empty( $eve_tdate ) || empty( $eve_venue ) || empty($eve_users)) 
+      {
+            $reg_errors->add('field', 'Required form field is missing');
+      }
+      if ( 3 > strlen( $eve_title ) ) 
+      {
+            $reg_errors->add( 'eventtitle_length', 'Event title too short' );
+      }
+      if($eve_tdate< $eve_sdate)
+      {
+            
+            $reg_errors->add( 'evendate', 'To date cannot be past date ' );
+      }
+      if ( is_wp_error( $reg_errors ) ) 
+      {
+ 
+            foreach ( $reg_errors->get_error_messages() as $error ) 
+            {     
+                    echo '<div style="color:red">';
+                    echo '<strong>ERROR</strong>:';
+                    echo $error . '<br/>';
+                    echo '</div>';               
+            }
+      }
+}
+
+
 //Function to insert data in table
 function complete_registration() 
 {
-      global $wpdb, $table_prefix;
-      $current_user = wp_get_current_user();
-      $cuser = $current_user->user_login;
-      $cuid = $current_user->ID;
-      $dc = date("Y-m-d");
-      $status = 0;
-      $active = 0;
-      $decline = 0;
-      $user = $_POST['traditional'];
-      $user[count($user)] = $cuid;
-      $u = implode(",", $user);
-
-      $tablename =  $table_prefix . 'event_reg';
-      $tablename1 =  $table_prefix . 'event_users';
-      //For inserting data in wp_event_reg
-      $data = array( 
-            'Eve_id' => $_POST['event_id'],
-            'Eve_Title' => $_POST['event_title'], 
-            'Eve_Desc' => $_POST['desc'],
-            'Eve_Venue' => $_POST['venue'], 
-            'Eve_Sdate' => $_POST['start_date'],
-            'Eve_Stime' => $_POST['start_time'], 
-            'Eve_Tdate' => $_POST['to_date'], 
-            'Eve_Ttime' => $_POST['to_time'], 
-            'Eve_Author' => $cuser,
-            'Eve_datecreated' => $dc,
-            'Eve_Status' => $status
-      );
-      $formats = array( 
-            '%s',
-            '%s',
-            '%s',
-            '%s',
-            '%s',
-            '%s',
-            '%s',
-            '%s',
-            '%s',
-            '%s',
-            '%d'
-      ); 
-      //For inserting data in wp_event_users 
-      $wpdb->insert($tablename, $data, $formats);
-
-      $eu =explode(",", $u);
-      for($i=0;$i<count($eu);$i++)
+      global $wpdb, $table_prefix, $reg_errors;
+      if ( 1 > count( $reg_errors->get_error_messages() ) ) 
       {
-            $data1 = array( 
-            'Eve_id' => $_POST['event_id'],
-            'Eve_User_Id' => $eu[$i], 
-            'Accepted' => $active,
-            'Declined' => $decline, 
-            'Eve_Status' => $status);
-            $formats1 = array( 
-            '%s',
-            '%s',
-            '%d',
-            '%d',
-            '%d'
+            
+            $current_user = wp_get_current_user();
+            $cuser = $current_user->user_login;
+            
+            $cuid = $current_user->ID;
+            $dc = date("Y-m-d");
+            $status = 0;
+            $active = 0;
+            $decline = 0;
+            $user = $_POST['traditional'];
+            $user[count($user)] = $cuid;
+            $u = implode(",", $user);
+
+            $etitle =  $_POST['event_title'];
+            $edesc = $_POST['desc'];
+            $evenue = $_POST['venue'];
+            $esdate = $_POST['start_date'];
+            $estime = $_POST['start_time'];
+            $etdate = $_POST['to_date'];
+            $ettime = $_POST['to_time'];
+            
+            
+            $tablename =  $table_prefix . 'event_reg';
+            $tablename1 =  $table_prefix . 'event_users';
+            //For inserting data in wp_event_reg
+            $data = array( 
+                  'Eve_Title' => $_POST['event_title'], 
+                  'Eve_Desc' => $_POST['desc'],
+                  'Eve_Venue' => $_POST['venue'], 
+                  'Eve_Sdate' => $_POST['start_date'],
+                  'Eve_Stime' => $_POST['start_time'], 
+                  'Eve_Tdate' => $_POST['to_date'], 
+                  'Eve_Ttime' => $_POST['to_time'], 
+                  'Eve_Author' => $cuser,
+                  'Eve_datecreated' => $dc,
+                  'Eve_Status' => $status
             );
-            $wpdb->insert($tablename1, $data1, $formats1);
+            $formats = array( 
+                  '%s',
+                  '%s',
+                  '%s',
+                  '%s',
+                  '%s',
+                  '%s',
+                  '%s',
+                  '%s',
+                  '%s',
+                  '%s',
+                  '%d'
+            ); 
+            //For inserting data in wp_event_users 
+            $wpdb->insert($tablename, $data, $formats);
+            
+            $eu =explode(",", $u);
+            for($i=0;$i<count($eu);$i++)
+            {
+                  $eid = $_POST['event_id'];
+                  $data1 = array( 
+                  'Eve_id' => $_POST['event_id'],
+                  'Eve_User_Id' => $eu[$i], 
+                  'Accepted' => $active,
+                  'Declined' => $decline, 
+                  'Eve_Status' => $status);
+                  $formats1 = array( 
+                  '%s',
+                  '%s',
+                  '%d',
+                  '%d',
+                  '%d'
+                  );
+                  $wpdb->insert($tablename1, $data1, $formats1);
+                  $result = $wpdb->get_row( "SELECT user_email FROM wp_users WHERE id='$eu[$i]'");
+                  $to = $result->user_email;
+                  $subject = 'Event Invitation';
+                  $message = '		<div id="email_container" style="background:#444">
+                        <div style="width:570px; padding:0 0 0 20px; margin:50px auto 12px auto" id="email_header">
+                              <span style="background:#585858; color:#fff; padding:12px;font-family:trebuchet ms; letter-spacing:1px; 
+                                    -moz-border-radius-topleft:5px; -webkit-border-top-left-radius:5px; 
+                                    border-top-left-radius:5px;moz-border-radius-topright:5px; -webkit-border-top-right-radius:5px; 
+                                    border-top-right-radius:5px;">
+                                    Event Invitation
+                              </div>
+                        </div>
+                  
+                  
+                        <div style="width:550px; padding:0 20px 20px 20px; background:#fff; margin:0 auto; border:3px #000 solid;
+                              moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px; color:#454545;line-height:1.5em; " id="email_content">
+                              
+                              <h1 style="padding:5px 0 0 0; font-family:georgia;font-weight:500;font-size:24px;color:#000;border-bottom:1px solid #bbb">
+                                    This is the invitaion for '.$etitle.'
+                              </h1>
+                              
+                              <p>
+                                    This event is organized by '.$cuser.'. Related informations <br/>Venue: '
+                                    .$evenue.'<br/>Event Starts at: '.$esdate.' '.$estime.'<br/>Event ends at: '.$etdate.' '.$ettime.'<br/>Event description: '.$edesc.'
+                              </p>
+                              <p>
+                                    <a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=yes&id='.$eid.'&uid='.$cuid.'"><span class="myButton" id="myButton" style="box-shadow: rgb(207, 134, 108) 0px 1px 0px 0px inset; border-radius: 3px; border: 1px solid rgb(148, 41, 17); display: inline-block; cursor: pointer; color: rgb(255, 255, 255); font-family: Arial; font-size: 13px; padding: 6px 24px; text-decoration: none; text-shadow: rgb(133, 70, 41) 0px 1px 0px; background: linear-gradient(rgb(208, 69, 27) 5%, rgb(188, 51, 21) 100%) rgb(208, 69, 27);">Accept</span></a>
+                                     
+                                    <a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=no&id='.$eid.'&uid='.$cuid.'"><span class="myButton" id="myButton" style="box-shadow: rgb(207, 134, 108) 0px 1px 0px 0px inset; border-radius: 3px; border: 1px solid rgb(148, 41, 17); display: inline-block; cursor: pointer; color: rgb(255, 255, 255); font-family: Arial; font-size: 13px; padding: 6px 24px; text-decoration: none; text-shadow: rgb(133, 70, 41) 0px 1px 0px; background: linear-gradient(rgb(208, 69, 27) 5%, rgb(188, 51, 21) 100%) rgb(208, 69, 27);">Decline</span></a>
+                              </p> 				
+                        </div>
+                  </div>';
+                  $headers= "MIME-Version: 1.0\n" ."Content-Type: text/html; charset=\"" . get_option('blog_charset') . "\"\n";
+                  wp_mail($to, $subject, $message, $headers);
+            }
             wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me/');
             exit;
       }
 }
+
 
 //Function to update data
 function  complete_editeve() 
@@ -139,11 +222,18 @@ function  complete_editeve()
       $user = $_POST['traditional'];
       $u = implode(",", (array)$user);
 
+      $etitle =  $_POST['event_title'];
+      $edesc = $_POST['desc'];
+      $evenue = $_POST['venue'];
+      $esdate = $_POST['start_date'];
+      $estime = $_POST['start_time'];
+      $etdate = $_POST['to_date'];
+      $ettime = $_POST['to_time'];
+      
       $tablename =  $table_prefix . 'event_reg';
       $tablename1 =  $table_prefix . 'event_users';
       //For inserting data in wp_event_reg
       $data = array( 
-            'Eve_id' => $_POST['event_id'],
             'Eve_Title' => $_POST['event_title'], 
             'Eve_Desc' => $_POST['desc'],
             'Eve_Venue' => $_POST['venue'], 
@@ -156,7 +246,6 @@ function  complete_editeve()
             'Eve_Status' => $status
       );
       $formats = array( 
-            '%s',
             '%s',
             '%s',
             '%s',
@@ -196,6 +285,47 @@ function  complete_editeve()
                   $wpdb->insert($tablename1, $data1, $formats1);
             }
       }
+      $eid = $_POST['event_id'];
+      $result = $wpdb->get_results( "SELECT * FROM wp_event_users WHERE Eve_id ='$eid'");
+
+      foreach($result as $row)
+      {
+            $uid = $row->Eve_User_Id;
+            $result1 = $wpdb->get_row( "SELECT user_email FROM wp_users WHERE ID ='$uid'");
+            $to = $result1->user_email;
+            $subject = 'Event Updates';
+            $message = '<div id="email_container" style="background:#444">
+			<div style="width:570px; padding:0 0 0 20px; margin:50px auto 12px auto" id="email_header">
+				<span style="background:#585858; color:#fff; padding:12px;font-family:trebuchet ms; letter-spacing:1px; 
+					-moz-border-radius-topleft:5px; -webkit-border-top-left-radius:5px; 
+					border-top-left-radius:5px;moz-border-radius-topright:5px; -webkit-border-top-right-radius:5px; 
+					border-top-right-radius:5px;">
+					Updation in Event Information
+				</div>
+			</div>
+		
+		
+			<div style="width:550px; padding:0 20px 20px 20px; background:#fff; margin:0 auto; border:3px #000 solid;
+				moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px; color:#454545;line-height:1.5em; " id="email_content">
+				
+				<h1 style="padding:5px 0 0 0; font-family:georgia;font-weight:500;font-size:24px;color:#000;border-bottom:1px solid #bbb">
+					 '.$etitle.' Information updated
+				</h1>
+				
+				<p>
+					This event is organized by '.$cuser.'. Updation in informations <br/>Venue: '
+                              .$evenue.'<br/>Event Starts at: '.$esdate.' '.$estime.'<br/>Event ends at: '.$etdate.' '.$ettime.'<br/>Event description: '.$edesc.'
+				</p>
+				<p>
+                              <a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=yes&id='.$eid.'&uid='.$cuid.'"><span class="myButton" id="myButton" style="box-shadow: rgb(207, 134, 108) 0px 1px 0px 0px inset; border-radius: 3px; border: 1px solid rgb(148, 41, 17); display: inline-block; cursor: pointer; color: rgb(255, 255, 255); font-family: Arial; font-size: 13px; padding: 6px 24px; text-decoration: none; text-shadow: rgb(133, 70, 41) 0px 1px 0px; background: linear-gradient(rgb(208, 69, 27) 5%, rgb(188, 51, 21) 100%) rgb(208, 69, 27);">Accept</span></a>
+                               
+					<a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=no&id='.$eid.'&uid='.$cuid.'"><span class="myButton" id="myButton" style="box-shadow: rgb(207, 134, 108) 0px 1px 0px 0px inset; border-radius: 3px; border: 1px solid rgb(148, 41, 17); display: inline-block; cursor: pointer; color: rgb(255, 255, 255); font-family: Arial; font-size: 13px; padding: 6px 24px; text-decoration: none; text-shadow: rgb(133, 70, 41) 0px 1px 0px; background: linear-gradient(rgb(208, 69, 27) 5%, rgb(188, 51, 21) 100%) rgb(208, 69, 27);">Decline</span></a>
+				</p> 				
+			</div>
+		</div>';
+            $headers= "MIME-Version: 1.0\n" ."Content-Type: text/html; charset=\"" . get_option('blog_charset') . "\"\n";
+            wp_mail($to, $subject, $message, $headers);
+      }
       wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me/');
       exit;
 }
@@ -213,7 +343,7 @@ function custom_registration_function()
                   $_POST['to_time'],
                   $_POST['traditional'],
                   $_POST['venue'],
-                  $_POST['desc']
+                  $_POST['traditional']
             );
             // sanitize user form input
             global $id, $title, $sdate, $stime, $tdate, $ttime, $venue, $users, $desc, $status;
@@ -370,3 +500,4 @@ function to_be_attended_list_shortcode()
       to_be_attended_list();
       return ob_get_clean();
 }
+

@@ -69,13 +69,14 @@ function pending_invitaion_list()
             $tablename1 =  $table_prefix . 'event_users';
             //For inserting data in wp_event_reg
             $data = array( 
+                   'Accepted' => 0,
                   'Declined' => 1
             );
             $formats = array( 
                   '%d'
             ); 
             $whe=array(
-                  'id'=> $_GET['id'],
+                  'Eve_id'=> $_GET['id'],
                   'Eve_User_Id' => $_GET['uid']
             );
             //For inserting data in wp_event_users 
@@ -88,13 +89,14 @@ function pending_invitaion_list()
             $tablename1 =  $table_prefix . 'event_users';
             //For inserting data in wp_event_reg
             $data = array( 
-                  'Accepted' => 1
+                  'Accepted' => 1,
+                  'Declined' => 0
             );
             $formats = array( 
                   '%d'
             ); 
             $whe=array(
-                  'id'=> $_GET['id'],
+                  'Eve_id'=> $_GET['id'],
                   'Eve_User_Id' => $_GET['uid']
             );
             //For inserting data in wp_event_users 
@@ -180,7 +182,7 @@ function to_be_attended_list()
             {
                   $id = $row->id;
                   $eveid = $row->Eve_id;
-                  $result2 = $wpdb->get_results("Select * from wp_event_reg where Eve_id = '$eveid'");
+                  $result2 = $wpdb->get_results("Select * from wp_event_reg where Eve_id = '$eveid' AND Eve_Status='0'");
                   foreach($result2 as $row2)
                   {
                   echo '
@@ -189,8 +191,8 @@ function to_be_attended_list()
                         <td>'.$row2->Eve_Title.'</td>
                         <td>'.$row2->Eve_Desc.'</td>
                         <td>'.$row2->Eve_Venue.'</td>
-                        <td>'.$row2->Eve_Sdate.'</td>
-                        <td>'.$row2->Eve_Tdate.'</td>
+                        <td>'.$row2->Eve_Sdate.' '.$row2->Eve_Stime.'</td>
+                        <td>'.$row2->Eve_Tdate.' '.$row2->Eve_Ttime.'</td>
                   </tr>';
                   }
             }
