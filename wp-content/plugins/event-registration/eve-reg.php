@@ -25,7 +25,7 @@ function event_manager()
       if($wpdb->get_var("show tables like my_table_name") != $appointment) 
       {
             $sql = "CREATE TABLE $appointment (
-            `Eve_id` varchar(9) NOT NULL,
+            `Eve_id` int(9) NOT NULL AUTO_INCREMENT,
             `Eve_Title` varchar(50), 
             `Eve_Desc` varchar(200),
             `Eve_Venue` varchar(100),
@@ -62,6 +62,7 @@ function complete_registration()
       global $wpdb, $table_prefix;
       $current_user = wp_get_current_user();
       $cuser = $current_user->user_login;
+      
       $cuid = $current_user->ID;
       $dc = date("Y-m-d");
       $status = 0;
@@ -75,7 +76,6 @@ function complete_registration()
       $tablename1 =  $table_prefix . 'event_users';
       //For inserting data in wp_event_reg
       $data = array( 
-            'Eve_id' => $_POST['event_id'],
             'Eve_Title' => $_POST['event_title'], 
             'Eve_Desc' => $_POST['desc'],
             'Eve_Venue' => $_POST['venue'], 
@@ -102,7 +102,7 @@ function complete_registration()
       ); 
       //For inserting data in wp_event_users 
       $wpdb->insert($tablename, $data, $formats);
-
+      
       $eu =explode(",", $u);
       for($i=0;$i<count($eu);$i++)
       {
@@ -120,9 +120,16 @@ function complete_registration()
             '%d'
             );
             $wpdb->insert($tablename1, $data1, $formats1);
-            wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me/');
-            exit;
+            
       }
+      
+    $to      = 'rohit.gupta@infobeans.com';
+    $subject = 'the subject';
+    $message = 'hello';
+    $headers = '';
+    wp_mail($to, $subject, $message, $headers);
+    wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me/');
+    exit;
 }
 
 //Function to update data

@@ -55,12 +55,12 @@ function registration_form( $eve_id, $eve_title, $eve_sdate, $eve_stime, $eve_td
       }
       else
       {
-            $i = (int)(substr($result1->Eve_id, 4));
+            $i = $result1->Eve_id;
       }
       echo '
       <form action="' . $_SERVER['REQUEST_URI'] . '" method="post">
             <div class="input-text">
-                  <input type="text" name = "event_id" id="eventid" value="EVE_'.($i+1).'" readonly/>
+                  <input type="hidden" name = "event_id" id="eventid" value="'.($i+1).'" readonly />
                   <span id="generror"></span>
             </div>
             <div class="input-text">
@@ -130,7 +130,7 @@ function edit_registration_form($eve_id, $eve_title, $eve_sdate, $eve_stime, $ev
             echo '
             <form action="' . $_SERVER['REQUEST_URI'] . '" method="post">
                   <div class="input-text">
-                        <input type="text" name = "event_id" id="eventid" value="'.$row->Eve_id .'" readonly/>
+                        <input type="hidden" name = "event_id" id="eventid" value="'.$row->Eve_id .'" readonly/>
                         <span id="generror"></span>
                   </div>
                   <div class="input-text">
