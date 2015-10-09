@@ -62,7 +62,7 @@ function complete_registration()
       global $wpdb, $table_prefix;
       $current_user = wp_get_current_user();
       $cuser = $current_user->user_login;
-      
+
       $cuid = $current_user->ID;
       $dc = date("Y-m-d");
       $status = 0;
@@ -87,7 +87,7 @@ function complete_registration()
             'Eve_datecreated' => $dc,
             'Eve_Status' => $status
       );
-      $formats = array( 
+      $formats = array(
             '%s',
             '%s',
             '%s',
@@ -102,7 +102,7 @@ function complete_registration()
       ); 
       //For inserting data in wp_event_users 
       $wpdb->insert($tablename, $data, $formats);
-      
+
       $eu =explode(",", $u);
       for($i=0;$i<count($eu);$i++)
       {
@@ -120,7 +120,7 @@ function complete_registration()
             '%d'
             );
             $wpdb->insert($tablename1, $data1, $formats1);
-            
+
       }
       
     $to      = 'rohit.gupta@infobeans.com';
@@ -313,7 +313,13 @@ function edit_event()
             $eve_users,
             $desc
       );
+	
+            wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me/');
+            exit;
+      
 }
+
+
 
 //For creating event
 add_shortcode( 'cr_custom_registration', 'custom_registration_shortcode' ); 
