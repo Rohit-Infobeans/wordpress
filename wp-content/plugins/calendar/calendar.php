@@ -31,7 +31,7 @@ load_plugin_textdomain( 'calendar','wp-content/plugins/'.$plugin_dir, $plugin_di
 
 // Define the tables used in Calendar
 global $wpdb;
-define('WP_CALENDAR_TABLE', $wpdb->prefix . 'event_reg');
+define('WP_CALENDAR_TABLE', $wpdb->prefix . 'calendar');
 define('WP_CALENDAR_CONFIG_TABLE', $wpdb->prefix . 'calendar_config');
 define('WP_CALENDAR_CATEGORIES_TABLE', $wpdb->prefix . 'calendar_categories');
 
@@ -71,7 +71,7 @@ function deal_with_deleted_user($id)
   global $wpdb;
 
   // Do the query
-  $wpdb->get_results($wpdb->prepare("UPDATE ".WP_CALENDAR_TABLE." SET Eve_Author=".$wpdb->get_var("SELECT MIN(ID) FROM ".$wpdb->prefix."users",0,0)." WHERE Eve_Author=%d",$id));
+  $wpdb->get_results($wpdb->prepare("UPDATE ".WP_CALENDAR_TABLE." SET event_author=".$wpdb->get_var("SELECT MIN(ID) FROM ".$wpdb->prefix."users",0,0)." WHERE event_author=%d",$id));
 }
 
 // Function to display a warning on the admin panel if the calendar plugin is mising setup
@@ -656,18 +656,18 @@ function check_calendar()
   if ( $new_install == true )
     {
       $sql = "CREATE TABLE " . WP_CALENDAR_TABLE . " (
-                                Eve_id INT(11) NOT NULL AUTO_INCREMENT ,
-                                Eve_Sdate DATE NOT NULL ,
-                                Eve_Tdate DATE NOT NULL ,
-                                Eve_Title VARCHAR(30) NOT NULL ,
-                                Eve_Desc TEXT NOT NULL ,
-                                Eve_Stime TIME ,
+                                event_id INT(11) NOT NULL AUTO_INCREMENT ,
+                                event_begin DATE NOT NULL ,
+                                event_end DATE NOT NULL ,
+                                event_title VARCHAR(30) NOT NULL ,
+                                event_desc TEXT NOT NULL ,
+                                event_time TIME ,
                                 event_recur CHAR(1) ,
                                 event_repeats INT(3) ,
-                                Eve_Author BIGINT(20) UNSIGNED ,
+                                event_author BIGINT(20) UNSIGNED ,
                                 event_category BIGINT(20) UNSIGNED NOT NULL DEFAULT 1 ,
                                 event_link TEXT ,
-                                PRIMARY KEY (Eve_id)
+                                PRIMARY KEY (event_id)
                         )";
       $wpdb->get_results($sql);
       $sql = "CREATE TABLE " . WP_CALENDAR_CONFIG_TABLE . " (
@@ -706,11 +706,11 @@ function check_calendar()
     }
   else if ($vone_point_one_upgrade == true)
     {
-      $sql = "ALTER TABLE ".WP_CALENDAR_TABLE." ADD COLUMN Eve_Author BIGINT(20) UNSIGNED";
+      $sql = "ALTER TABLE ".WP_CALENDAR_TABLE." ADD COLUMN event_author BIGINT(20) UNSIGNED";
       $wpdb->get_results($sql);
-      $sql = "UPDATE ".WP_CALENDAR_TABLE." SET Eve_Author=".$wpdb->get_var("SELECT MIN(ID) FROM ".$wpdb->prefix."users",0,0);
+      $sql = "UPDATE ".WP_CALENDAR_TABLE." SET event_author=".$wpdb->get_var("SELECT MIN(ID) FROM ".$wpdb->prefix."users",0,0);
       $wpdb->get_results($sql);
-      $sql = "ALTER TABLE ".WP_CALENDAR_TABLE." MODIFY Eve_Desc TEXT NOT NULL";
+      $sql = "ALTER TABLE ".WP_CALENDAR_TABLE." MODIFY event_desc TEXT NOT NULL";
       $wpdb->get_results($sql);
       $sql = "CREATE TABLE " . WP_CALENDAR_CONFIG_TABLE . " (
                                 config_item VARCHAR(30) NOT NULL ,
@@ -784,9 +784,9 @@ function check_calendar()
 // Used on the manage events admin page to display a list of events
 function wp_events_display_list(){
 
-	global $wpdb;
+	global $wpdb, $table_prefix;
 	
-	$events = $wpdb->get_results("SELECT * FROM " . WP_CALENDAR_TABLE . " ORDER BY Eve_Sdate DESC");
+	$events = $wpdb->get_results("SELECT * FROM " . WP_CALENDAR_TABLE . " ORDER BY event_begin DESC");
 	
 	if ( !empty($events) )
 	{
@@ -814,11 +814,11 @@ function wp_events_display_list(){
 			$class = ($class == 'alternate') ? '' : 'alternate';
 			?>
 			<tr class="<?php echo $class; ?>">
-				<th scope="row"><?php echo stripslashes($event->Eve_id); ?></th>
-				<td><?php echo stripslashes($event->Eve_Title); ?></td>
-				<td><?php echo stripslashes($event->Eve_Sdate); ?></td>
-				<td><?php echo stripslashes($event->Eve_Tdate); ?></td>
-				<td><?php if ($event->Eve_Stime == '00:00:00') { echo __('N/A','calendar'); } else { echo stripslashes($event->Eve_Stime); } ?></td>
+				<th scope="row"><?php echo stripslashes($event->event_id); ?></th>
+				<td><?php echo stripslashes($event->event_title); ?></td>
+				<td><?php echo stripslashes($event->event_begin); ?></td>
+				<td><?php echo stripslashes($event->event_end); ?></td>
+				<td><?php if ($event->event_time == '00:00:00') { echo __('N/A','calendar'); } else { echo stripslashes($event->event_time); } ?></td>
 				<td>
 				<?php 
 					// Interpret the DB values into something human readable
@@ -837,16 +837,16 @@ function wp_events_display_list(){
 					else if ($event->event_repeats > 0) { echo stripslashes($event->event_repeats).' '.__('Times','calendar'); }					
 				?>
 				</td>
-				<td><?php $e = get_userdata($event->Eve_Author); echo $e->display_name; ?></td>
+				<td><?php $e = get_userdata($event->event_author); echo $e->display_name; ?></td>
                                 <?php
 				$sql = $wpdb->prepare("SELECT * FROM " . WP_CALENDAR_CATEGORIES_TABLE . " WHERE category_id=%d",$event->event_category);
                                 $this_cat = $wpdb->get_row($sql);
                                 ?>
 				<td style="background-color:<?php echo stripslashes($this_cat->category_colour);?>;"><?php echo stripslashes($this_cat->category_name); ?></td>
 				<?php unset($this_cat); ?>
-				<td><a href="<?php echo bloginfo('wpurl') ?>/wp-admin/admin.php?page=calendar&amp;action=edit&amp;Eve_id=<?php echo stripslashes($event->Eve_id);?>" class='edit'><?php echo __('Edit','calendar'); ?></a></td>
+				<td><a href="<?php echo bloginfo('wpurl') ?>/wp-admin/admin.php?page=calendar&amp;action=edit&amp;event_id=<?php echo stripslashes($event->event_id);?>" class='edit'><?php echo __('Edit','calendar'); ?></a></td>
 				<td><a href="
-<?php echo wp_nonce_url(bloginfo('wpurl').'/wp-admin/admin.php?page=calendar&amp;action=delete&amp;Eve_id='.stripslashes($event->Eve_id),'calendar-delete_'.stripslashes($event->Eve_id)); ?>" class="delete" onclick="return confirm('<?php _e('Are you sure you want to delete this event?','calendar'); ?>')"><?php echo __('Delete','calendar'); ?></a></td>
+<?php echo wp_nonce_url(bloginfo('wpurl').'/wp-admin/admin.php?page=calendar&amp;action=delete&amp;event_id='.stripslashes($event->event_id),'calendar-delete_'.stripslashes($event->event_id)); ?>" class="delete" onclick="return confirm('<?php _e('Are you sure you want to delete this event?','calendar'); ?>')"><?php echo __('Delete','calendar'); ?></a></td>
 			</tr>
 			<?php
 		}
@@ -864,21 +864,21 @@ function wp_events_display_list(){
 
 
 // The event edit form for the manage events admin page
-function wp_events_edit_form($mode='add', $Eve_id=false)
+function wp_events_edit_form($mode='add', $event_id=false)
 {
 	global $wpdb,$users_entries;
 	$data = false;
 	
-	if ( $Eve_id !== false )
+	if ( $event_id !== false )
 	{
-		if ( intval($Eve_id) != $Eve_id )
+		if ( intval($event_id) != $event_id )
 		{
 			echo "<div class=\"error\"><p>".__('Bad Monkey! No banana!','calendar')."</p></div>";
 			return;
 		}
 		else
 		{
-			$data = $wpdb->get_results($wpdb->prepare("SELECT * FROM " . WP_CALENDAR_TABLE . " WHERE Eve_id='%d' LIMIT 1",$Eve_id));
+			$data = $wpdb->get_results($wpdb->prepare("SELECT * FROM " . WP_CALENDAR_TABLE . " WHERE event_id='%d' LIMIT 1",$event_id));
 			if ( empty($data) )
 			{
 				echo "<div class=\"error\"><p>".__("An event with that ID couldn't be found",'calendar')."</p></div>";
@@ -902,10 +902,10 @@ function wp_events_edit_form($mode='add', $Eve_id=false)
         <div id="pop_up_cal" style="position:absolute;margin-left:150px;visibility:hidden;background-color:white;layer-background-color:white;z-index:1;"></div>
 	<form name="quoteform" id="quoteform" class="wrap" method="post" action="<?php echo bloginfo('wpurl'); ?>/wp-admin/admin.php?page=calendar">
 		<input type="hidden" name="action" value="<?php echo $mode; ?>">
-		<input type="hidden" name="Eve_id" value="<?php echo stripslashes($Eve_id); ?>">
+		<input type="hidden" name="event_id" value="<?php echo stripslashes($event_id); ?>">
 		<?php 
-			if (stripslashes($Eve_id) != "") {
-				$nonce_string = 'calendar-'.$mode.'_'.stripslashes($Eve_id);
+			if (stripslashes($event_id) != "") {
+				$nonce_string = 'calendar-'.$mode.'_'.stripslashes($event_id);
 			} else {
 				$nonce_string = 'calendar-'.$mode;
 			}
@@ -917,12 +917,12 @@ function wp_events_edit_form($mode='add', $Eve_id=false)
                                 <table cellpadding="5" cellspacing="5">
                                 <tr>				
 				<td><legend><?php _e('Event Title','calendar'); ?></legend></td>
-				<td><input type="text" name="Eve_Title" class="input" size="40" maxlength="30"
-					value="<?php if ( !empty($data) ) echo htmlspecialchars(stripslashes($data->Eve_Title)); ?>" /></td>
+				<td><input type="text" name="event_title" class="input" size="40" maxlength="30"
+					value="<?php if ( !empty($data) ) echo htmlspecialchars(stripslashes($data->event_title)); ?>" /></td>
                                 </tr>
                                 <tr>
 				<td style="vertical-align:top;"><legend><?php _e('Event Description','calendar'); ?></legend></td>
-				<td><textarea name="Eve_Desc" class="input" rows="5" cols="50"><?php if ( !empty($data) ) echo htmlspecialchars(stripslashes($data->Eve_Desc)); ?></textarea></td>
+				<td><textarea name="event_desc" class="input" rows="5" cols="50"><?php if ( !empty($data) ) echo htmlspecialchars(stripslashes($data->event_desc)); ?></textarea></td>
                                 </tr>
                                 <tr>
 				<td><legend><?php _e('Event Category','calendar'); ?></legend></td>
@@ -955,11 +955,11 @@ function wp_events_edit_form($mode='add', $Eve_id=false)
                                 <tr>
 				<td><legend><?php _e('Start Date','calendar'); ?></legend></td>
                                 <td>    
-					<input type="text" name="Eve_Sdate" id="Eve_Sdate" class="input" size="12"
+					<input type="text" name="event_begin" id="event_begin" class="input" size="12"
 					value="<?php 
 					if ( !empty($data) ) 
 					{
-						echo htmlspecialchars(stripslashes($data->Eve_Sdate));
+						echo htmlspecialchars(stripslashes($data->event_begin));
 					}
 					else
 					{
@@ -968,10 +968,10 @@ function wp_events_edit_form($mode='add', $Eve_id=false)
 					?>" />
 					<script type="text/javascript">
 						var cal_1 = new Calendar({
-							element: 'Eve_Sdate',
+							element: 'event_begin',
 							startDay: <?php echo get_option('start_of_week'); ?>,
 							onSelect: function unifydates(element) {
-							  document.forms['quoteform'].Eve_Tdate.value = document.forms['quoteform'].Eve_Sdate.value;
+							  document.forms['quoteform'].event_end.value = document.forms['quoteform'].event_begin.value;
 							}
 						});
 					</script>
@@ -980,11 +980,11 @@ function wp_events_edit_form($mode='add', $Eve_id=false)
                                 <tr>
 				<td><legend><?php _e('End Date','calendar'); ?></legend></td>
                                 <td>    
-					<input type="text" name="Eve_Tdate" id="Eve_Tdate" class="input" size="12" 
+					<input type="text" name="event_end" id="event_end" class="input" size="12" 
 					value="<?php 
 					if ( !empty($data) ) 
 					{
-						echo htmlspecialchars(stripslashes($data->Eve_Tdate));
+						echo htmlspecialchars(stripslashes($data->event_end));
 					}
 					else
 					{
@@ -993,26 +993,26 @@ function wp_events_edit_form($mode='add', $Eve_id=false)
 					?>" />
 					<script type="text/javascript">
 						var cal_2 = new Calendar({
-							element: 'Eve_Tdate',
+							element: 'event_end',
 							startDay: <?php echo get_option('start_of_week'); ?>,
-							minDate: new Date(parseInt(document.forms['quoteform'].Eve_Sdate.value.split('-')[0]),parseInt(document.forms['quoteform'].Eve_Sdate.value.split('-')[1]-1),parseInt(document.forms['quoteform'].Eve_Sdate.value.split('-')[2]))
+							minDate: new Date(parseInt(document.forms['quoteform'].event_begin.value.split('-')[0]),parseInt(document.forms['quoteform'].event_begin.value.split('-')[1]-1),parseInt(document.forms['quoteform'].event_begin.value.split('-')[2]))
 						});
 					</script>
 				</td>
                                 </tr>
                                 <tr>
 				<td><legend><?php _e('Time (hh:mm)','calendar'); ?></legend></td>
-				<td>	<input type="text" name="Eve_Stime" class="input" size=12
+				<td>	<input type="text" name="event_time" class="input" size=12
 					value="<?php 
 					if ( !empty($data) ) 
 					{
-						if ($data->Eve_Stime == "00:00:00")
+						if ($data->event_time == "00:00:00")
 						{
 							echo '';
 						}
 						else
 						{
-							echo date("H:i",strtotime(htmlspecialchars(stripslashes($data->Eve_Stime))));
+							echo date("H:i",strtotime(htmlspecialchars(stripslashes($data->event_time))));
 						}
 					}
 					else
@@ -1131,16 +1131,16 @@ $edit = $create = $save = $delete = false;
 
 // Make sure we are collecting the variables we need to select years and months
 $action = !empty($_REQUEST['action']) ? $_REQUEST['action'] : '';
-$Eve_id = !empty($_REQUEST['Eve_id']) ? $_REQUEST['Eve_id'] : '';
+$event_id = !empty($_REQUEST['event_id']) ? $_REQUEST['event_id'] : '';
 
 // Deal with adding an event to the database
 if ( $action == 'add' )
 {
-	$title = !empty($_REQUEST['Eve_Title']) ? $_REQUEST['Eve_Title'] : '';
-	$desc = !empty($_REQUEST['Eve_Desc']) ? $_REQUEST['Eve_Desc'] : '';
-	$begin = !empty($_REQUEST['Eve_Sdate']) ? $_REQUEST['Eve_Sdate'] : '';
-	$end = !empty($_REQUEST['Eve_Tdate']) ? $_REQUEST['Eve_Tdate'] : '';
-	$time = !empty($_REQUEST['Eve_Stime']) ? $_REQUEST['Eve_Stime'] : '';
+	$title = !empty($_REQUEST['event_title']) ? $_REQUEST['event_title'] : '';
+	$desc = !empty($_REQUEST['event_desc']) ? $_REQUEST['event_desc'] : '';
+	$begin = !empty($_REQUEST['event_begin']) ? $_REQUEST['event_begin'] : '';
+	$end = !empty($_REQUEST['event_end']) ? $_REQUEST['event_end'] : '';
+	$time = !empty($_REQUEST['event_time']) ? $_REQUEST['event_time'] : '';
 	$recur = !empty($_REQUEST['event_recur']) ? $_REQUEST['event_recur'] : '';
 	$repeats = !empty($_REQUEST['event_repeats']) ? $_REQUEST['event_repeats'] : '';
 	$category = !empty($_REQUEST['event_category']) ? $_REQUEST['event_category'] : '';
@@ -1255,14 +1255,14 @@ if ( $action == 'add' )
 	  }
 	if (isset($start_date_ok) && isset($end_date_ok) && isset($time_ok) && isset($url_ok) && isset($title_ok) && isset($recurring_ok))
 	  {
-	    $sql = $wpdb->prepare("INSERT INTO " . WP_CALENDAR_TABLE . " SET Eve_Title='%s', Eve_Desc='%s', Eve_Sdate='%s', Eve_Tdate='%s', Eve_Stime='%s', event_recur='%s', event_repeats='%s', Eve_Author=%d, event_category=%d, event_link='%s'",$title,$desc,$begin,$end,$time_to_use,$recur,$repeats,$current_user->ID,$category,$linky);
+	    $sql = $wpdb->prepare("INSERT INTO " . WP_CALENDAR_TABLE . " SET event_title='%s', event_desc='%s', event_begin='%s', event_end='%s', event_time='%s', event_recur='%s', event_repeats='%s', event_author=%d, event_category=%d, event_link='%s'",$title,$desc,$begin,$end,$time_to_use,$recur,$repeats,$current_user->ID,$category,$linky);
 	     
 	    $wpdb->get_results($sql);
 	
-	    $sql = $wpdb->prepare("SELECT Eve_id FROM " . WP_CALENDAR_TABLE . " WHERE Eve_Title='%s' AND Eve_Desc='%s' AND Eve_Sdate='%s' AND Eve_Tdate='%s' AND event_recur='%s' AND event_repeats='%s' LIMIT 1",$title,$desc,$begin,$end,$recur,$repeats);
+	    $sql = $wpdb->prepare("SELECT event_id FROM " . WP_CALENDAR_TABLE . " WHERE event_title='%s' AND event_desc='%s' AND event_begin='%s' AND event_end='%s' AND event_recur='%s' AND event_repeats='%s' LIMIT 1",$title,$desc,$begin,$end,$recur,$repeats);
 	    $result = $wpdb->get_results($sql);
 	
-	    if ( empty($result) || empty($result[0]->Eve_id) )
+	    if ( empty($result) || empty($result[0]->event_id) )
 	      {
                 ?>
 		<div class="error"><p><strong><?php _e('Error','calendar'); ?>:</strong> <?php _e('An event with the details you submitted could not be found in the database. This may indicate a problem with your database or the way in which it is configured.','calendar'); ?></p></div>
@@ -1279,11 +1279,11 @@ if ( $action == 'add' )
 	else
 	  {
 	    // The form is going to be rejected due to field validation issues, so we preserve the users entries here
-	    $users_entries->Eve_Title = $title;
-	    $users_entries->Eve_Desc = $desc;
-	    $users_entries->Eve_Sdate = $begin;
-	    $users_entries->Eve_Tdate = $end;
-	    $users_entries->Eve_Stime = $time;
+	    $users_entries->event_title = $title;
+	    $users_entries->event_desc = $desc;
+	    $users_entries->event_begin = $begin;
+	    $users_entries->event_end = $end;
+	    $users_entries->event_time = $time;
 	    $users_entries->event_recur = $recur;
 	    $users_entries->event_repeats = $repeats;
 	    $users_entries->event_category = $category;
@@ -1294,23 +1294,23 @@ if ( $action == 'add' )
 // Permit saving of events that have been edited
 elseif ( $action == 'edit_save' )
 {
-	$title = !empty($_REQUEST['Eve_Title']) ? $_REQUEST['Eve_Title'] : '';
-	$desc = !empty($_REQUEST['Eve_Desc']) ? $_REQUEST['Eve_Desc'] : '';
-	$begin = !empty($_REQUEST['Eve_Sdate']) ? $_REQUEST['Eve_Sdate'] : '';
-	$end = !empty($_REQUEST['Eve_Tdate']) ? $_REQUEST['Eve_Tdate'] : '';
-	$time = !empty($_REQUEST['Eve_Stime']) ? $_REQUEST['Eve_Stime'] : '';
+	$title = !empty($_REQUEST['event_title']) ? $_REQUEST['event_title'] : '';
+	$desc = !empty($_REQUEST['event_desc']) ? $_REQUEST['event_desc'] : '';
+	$begin = !empty($_REQUEST['event_begin']) ? $_REQUEST['event_begin'] : '';
+	$end = !empty($_REQUEST['event_end']) ? $_REQUEST['event_end'] : '';
+	$time = !empty($_REQUEST['event_time']) ? $_REQUEST['event_time'] : '';
 	$recur = !empty($_REQUEST['event_recur']) ? $_REQUEST['event_recur'] : '';
 	$repeats = !empty($_REQUEST['event_repeats']) ? $_REQUEST['event_repeats'] : '';
 	$category = !empty($_REQUEST['event_category']) ? $_REQUEST['event_category'] : '';
         $linky = !empty($_REQUEST['event_link']) ? $_REQUEST['event_link'] : '';
 	
-	if ( empty($Eve_id) )
+	if ( empty($event_id) )
 	{
 		?>
 		<div class="error"><p><strong><?php _e('Failure','calendar'); ?>:</strong> <?php _e("You can't update an event if you haven't submitted an event id",'calendar'); ?></p></div>
 		<?php		
 	}
-	elseif (wp_verify_nonce($_POST['_wpnonce'],'calendar-edit_save_'.$Eve_id) == false) {
+	elseif (wp_verify_nonce($_POST['_wpnonce'],'calendar-edit_save_'.$event_id) == false) {
 		?>
 		<div class="error"><p><strong><?php _e('Error','calendar'); ?>:</strong> <?php _e("Security check failure, try editing the event again",'calendar'); ?></p></div>
 		<?php
@@ -1420,12 +1420,12 @@ elseif ( $action == 'edit_save' )
 	    }
 	  if (isset($start_date_ok) && isset($end_date_ok) && isset($time_ok) && isset($url_ok) && isset($title_ok) && isset($recurring_ok))
 	    {
-		$sql = $wpdb->prepare("UPDATE " . WP_CALENDAR_TABLE . " SET Eve_Title='%s', Eve_Desc='%s', Eve_Sdate='%s', Eve_Tdate='%s', Eve_Stime='%s', event_recur='%s', event_repeats='%s', Eve_Author=%d, event_category=%d, event_link='%s' WHERE Eve_id='%s'",$title,$desc,$begin,$end,$time_to_use,$recur,$repeats,$current_user->ID,$category,$linky,$Eve_id);		     
+		$sql = $wpdb->prepare("UPDATE " . WP_CALENDAR_TABLE . " SET event_title='%s', event_desc='%s', event_begin='%s', event_end='%s', event_time='%s', event_recur='%s', event_repeats='%s', event_author=%d, event_category=%d, event_link='%s' WHERE event_id='%s'",$title,$desc,$begin,$end,$time_to_use,$recur,$repeats,$current_user->ID,$category,$linky,$event_id);		     
 		$wpdb->get_results($sql);
-		$sql = $wpdb->prepare("SELECT Eve_id FROM " . WP_CALENDAR_TABLE . " WHERE Eve_Title='%s' AND Eve_Desc='%s' AND Eve_Sdate='%s' AND Eve_Tdate='%s' AND event_recur='%s' AND event_repeats='%s' LIMIT 1",$title,$desc,$begin,$end,$recur,$repeats);
+		$sql = $wpdb->prepare("SELECT event_id FROM " . WP_CALENDAR_TABLE . " WHERE event_title='%s' AND event_desc='%s' AND event_begin='%s' AND event_end='%s' AND event_recur='%s' AND event_repeats='%s' LIMIT 1",$title,$desc,$begin,$end,$recur,$repeats);
 		$result = $wpdb->get_results($sql);
 		
-		if ( empty($result) || empty($result[0]->Eve_id) )
+		if ( empty($result) || empty($result[0]->event_id) )
 		{
 			?>
 			<div class="error"><p><strong><?php _e('Failure','calendar'); ?>:</strong> <?php _e('The database failed to return data to indicate the event has been updated sucessfully. This may indicate a problem with your database or the way in which it is configured.','calendar'); ?></p></div>
@@ -1442,11 +1442,11 @@ elseif ( $action == 'edit_save' )
           else
 	    {
 	      // The form is going to be rejected due to field validation issues, so we preserve the users entries here
-        $users_entries->Eve_Title = $title;
-	      $users_entries->Eve_Desc = $desc;
-	      $users_entries->Eve_Sdate = $begin;
-	      $users_entries->Eve_Tdate = $end;
-	      $users_entries->Eve_Stime = $time;
+        $users_entries->event_title = $title;
+	      $users_entries->event_desc = $desc;
+	      $users_entries->event_begin = $begin;
+	      $users_entries->event_end = $end;
+	      $users_entries->event_time = $time;
 	      $users_entries->event_recur = $recur;
 	      $users_entries->event_repeats = $repeats;
 	      $users_entries->event_category = $category;
@@ -1458,26 +1458,26 @@ elseif ( $action == 'edit_save' )
 // Deal with deleting an event from the database
 elseif ( $action == 'delete' )
 {
-	if ( empty($Eve_id) )
+	if ( empty($event_id) )
 	{
 		?>
 		<div class="error"><p><strong><?php _e('Error','calendar'); ?>:</strong> <?php _e("You can't delete an event if you haven't submitted an event id",'calendar'); ?></p></div>
 		<?php			
 	}
-	elseif (wp_verify_nonce($_GET['_wpnonce'],'calendar-delete_'.$Eve_id) == false) {
+	elseif (wp_verify_nonce($_GET['_wpnonce'],'calendar-delete_'.$event_id) == false) {
 		?>
 		<div class="error"><p><strong><?php _e('Error','calendar'); ?>:</strong> <?php _e("Security check failure, try deleting the event again",'calendar'); ?></p></div>
 		<?php
 	}
 	else
 	{
-		$sql = $wpdb->prepare("DELETE FROM " . WP_CALENDAR_TABLE . " WHERE Eve_id='%s'",$Eve_id);
+		$sql = $wpdb->prepare("DELETE FROM " . WP_CALENDAR_TABLE . " WHERE event_id='%s'",$event_id);
 		$wpdb->get_results($sql);
 		
-		$sql = $wpdb->prepare("SELECT Eve_id FROM " . WP_CALENDAR_TABLE . " WHERE Eve_id='%s'",$Eve_id);
+		$sql = $wpdb->prepare("SELECT event_id FROM " . WP_CALENDAR_TABLE . " WHERE event_id='%s'",$event_id);
 		$result = $wpdb->get_results($sql);
 		
-		if ( empty($result) || empty($result[0]->Eve_id) )
+		if ( empty($result) || empty($result[0]->event_id) )
 		{
 			do_action('add_calendar_entry', 'delete');
 			?>
@@ -1505,13 +1505,13 @@ elseif ( $action == 'delete' )
 		?>
 		<h2><?php _e('Edit Event','calendar'); ?></h2>
 		<?php
-		if ( empty($Eve_id) )
+		if ( empty($event_id) )
 		{
 			echo "<div class=\"error\"><p>".__("You must provide an event id in order to edit it",'calendar')."</p></div>";
 		}
 		else
 		{
-			wp_events_edit_form('edit_save', $Eve_id);
+			wp_events_edit_form('edit_save', $event_id);
 		}	
 	}
 	else
@@ -2218,11 +2218,11 @@ function upcoming_events($cat_list = '')
 	  } 
 	  foreach($events as $event)
 	    {
-	      if ($event->Eve_Stime == '00:00:00') {
+	      if ($event->event_time == '00:00:00') {
 		$time_string = ' '.__('all day','calendar');
 	      }
 	      else {
-		$time_string = ' '.__('at','calendar').' '.date(get_option('time_format'), strtotime(stripslashes($event->Eve_Stime)));
+		$time_string = ' '.__('at','calendar').' '.date(get_option('time_format'), strtotime(stripslashes($event->event_time)));
 	      }
               $output .= '<li>'.draw_event($event).$time_string.'</li>';
 	    }
@@ -2257,11 +2257,11 @@ function todays_events($cat_list = '')
       usort($events, "time_cmp");
       foreach($events as $event)
 	{
-	  if ($event->Eve_Stime == '00:00:00') {
+	  if ($event->event_time == '00:00:00') {
 	    $time_string = ' '.__('all day','calendar');
 	  }
 	  else {
-	    $time_string = ' '.__('at','calendar').' '.date(get_option('time_format'), strtotime(stripslashes($event->Eve_Stime)));
+	    $time_string = ' '.__('at','calendar').' '.date(get_option('time_format'), strtotime(stripslashes($event->event_time)));
 	  }
 	  $output .= '<li>'.draw_event($event).$time_string.'</li>';
 	}
@@ -2276,10 +2276,10 @@ function todays_events($cat_list = '')
 // Function to compare time in event objects
 function time_cmp($a, $b)
 {
-  if ($a->Eve_Stime == $b->Eve_Stime) {
+  if ($a->event_time == $b->event_time) {
     return 0;
   }
-  return ($a->Eve_Stime < $b->Eve_Stime) ? -1 : 1;
+  return ($a->event_time < $b->event_time) ? -1 : 1;
 }
 
 // Used to draw multiple events
@@ -2291,7 +2291,8 @@ function draw_events($events)
   // Now process the events
   foreach($events as $event)
     {
-      $output .= '* '.draw_event($event).'<br />';
+
+      $output .= draw_event($event).'<br />';
     }
   return $output;
 }
@@ -2422,8 +2423,8 @@ function widget_init_calendar_upcoming() {
 // Used to draw an event to the screen
 function draw_event($event)
 {
-  global $wpdb;
-
+   global $wpdb, $table_prefix;
+   
   // Before we do anything we want to know if we                                             
   // should display the author and/or show categories. 
   // We check for this later                                      
@@ -2437,18 +2438,18 @@ function draw_event($event)
       $style = 'style="background-color:'.stripslashes($cat_details->category_colour).';"';
     }
 
-  $header_details =  '<span class="event-title" '.$style.'>'.stripslashes($event->Eve_Title).'</span><br />
+  $header_details =  '<span class="event-title" '.$style.'>'.stripslashes($event->event_title).'</span><br />
 <span class="event-title-break"></span><br />';
-  if ($event->Eve_Stime != "00:00:00")
+  if ($event->event_time != "00:00:00")
     {
-      $header_details .= '<strong>'.__('Time','calendar').':</strong> ' . date(get_option('time_format'), strtotime(stripslashes($event->Eve_Stime))) . '<br />';
+      $header_details .= '<strong>'.__('Time','calendar').':</strong> ' . date(get_option('time_format'), strtotime(stripslashes($event->event_time))) . '<br />';
     }
   if ($display_author == 'true')
     {
-      $e = get_userdata(stripslashes($event->Eve_Author));
+      $e = get_userdata(stripslashes($event->event_author));
       $header_details .= '<strong>'.__('Posted by', 'calendar').':</strong> '.$e->display_name.'<br />';
     }
-  if ($display_author == 'true' || $event->Eve_Stime != "00:00:00")
+  if ($display_author == 'true' || $event->event_time != "00:00:00")
     {
       $header_details .= '<span class="event-content-break"></span><br />';
     }
@@ -2457,9 +2458,8 @@ function draw_event($event)
   
   $linky = apply_filters('modify_calendar_link', $linky, $event);
 
-  $details = '<span class="calnk"><a href="'.$linky.'" '.$style.'>' . stripslashes($event->Eve_Title) . '<span '.$style.'>' . $header_details . '' . stripslashes($event->Eve_Desc) . '</span></a></span>';
-
-  return $details;
+  $details = '<span class="calnk"><a href="'.$linky.'" '.$style.'>' . stripslashes($event->event_title) . '<span '.$style.'>' . $header_details . '' . stripslashes($event->event_desc) . '</span></a></span>';
+    return $details;
 }
 
 // Grab all events for the requested date from calendar
@@ -2477,27 +2477,28 @@ function grab_events($y,$m,$d,$typing,$cat_list = '')
      else { $cat_sql = 'AND event_category in ('.$cat_list.')'; }
      
      // The collated SQL code
-     $sql = "SELECT a.*,'Normal' AS type  FROM " . WP_CALENDAR_TABLE . " AS a WHERE a.Eve_Sdate <= '$date' AND a.Eve_Tdate >= '$date' AND a.event_recur = 'S' ".$cat_sql." 
+     $sql = "SELECT a.*,'Normal' AS type  FROM " . WP_CALENDAR_TABLE . " AS a WHERE a.event_begin <= '$date' AND a.event_end >= '$date' AND a.event_recur = 'S' ".$cat_sql." 
 UNION ALL 
-SELECT b.*,'Yearly' AS type FROM " . WP_CALENDAR_TABLE . " AS b WHERE b.event_recur = 'Y' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM b.Eve_Sdate) AND b.event_repeats = 0 ".$cat_sql." 
+SELECT b.*,'Yearly' AS type FROM " . WP_CALENDAR_TABLE . " AS b WHERE b.event_recur = 'Y' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM b.event_begin) AND b.event_repeats = 0 ".$cat_sql." 
 UNION ALL 
-SELECT c.*,'Yearly' AS type FROM " . WP_CALENDAR_TABLE . " AS c WHERE c.event_recur = 'Y' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM c.Eve_Sdate) AND c.event_repeats != 0 AND (EXTRACT(YEAR FROM '$date')-EXTRACT(YEAR FROM c.Eve_Sdate)) <= c.event_repeats ".$cat_sql." 
+SELECT c.*,'Yearly' AS type FROM " . WP_CALENDAR_TABLE . " AS c WHERE c.event_recur = 'Y' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM c.event_begin) AND c.event_repeats != 0 AND (EXTRACT(YEAR FROM '$date')-EXTRACT(YEAR FROM c.event_begin)) <= c.event_repeats ".$cat_sql." 
 UNION ALL 
-SELECT d.*,'Monthly' AS type FROM " . WP_CALENDAR_TABLE . " AS d WHERE d.event_recur = 'M' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM d.Eve_Sdate) AND d.event_repeats = 0 ".$cat_sql." 
+SELECT d.*,'Monthly' AS type FROM " . WP_CALENDAR_TABLE . " AS d WHERE d.event_recur = 'M' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM d.event_begin) AND d.event_repeats = 0 ".$cat_sql." 
 UNION ALL
-SELECT e.*,'Monthly' AS type FROM " . WP_CALENDAR_TABLE . " AS e WHERE e.event_recur = 'M' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM e.Eve_Sdate) AND e.event_repeats != 0 AND (PERIOD_DIFF(EXTRACT(YEAR_MONTH FROM '$date'),EXTRACT(YEAR_MONTH FROM e.Eve_Sdate))) <= e.event_repeats ".$cat_sql." 
+SELECT e.*,'Monthly' AS type FROM " . WP_CALENDAR_TABLE . " AS e WHERE e.event_recur = 'M' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM e.event_begin) AND e.event_repeats != 0 AND (PERIOD_DIFF(EXTRACT(YEAR_MONTH FROM '$date'),EXTRACT(YEAR_MONTH FROM e.event_begin))) <= e.event_repeats ".$cat_sql." 
 UNION ALL
-SELECT f.*,'MonthSun' AS type FROM " . WP_CALENDAR_TABLE . " AS f WHERE f.event_recur = 'U' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM f.Eve_Sdate) AND f.event_repeats = 0 ".$cat_sql." 
+SELECT f.*,'MonthSun' AS type FROM " . WP_CALENDAR_TABLE . " AS f WHERE f.event_recur = 'U' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM f.event_begin) AND f.event_repeats = 0 ".$cat_sql." 
 UNION ALL
-SELECT g.*,'MonthSun' AS type FROM " . WP_CALENDAR_TABLE . " AS g WHERE g.event_recur = 'U' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM g.Eve_Sdate) AND g.event_repeats != 0 AND (PERIOD_DIFF(EXTRACT(YEAR_MONTH FROM '$date'),EXTRACT(YEAR_MONTH FROM g.Eve_Sdate))) <= g.event_repeats ".$cat_sql." 
+SELECT g.*,'MonthSun' AS type FROM " . WP_CALENDAR_TABLE . " AS g WHERE g.event_recur = 'U' AND EXTRACT(YEAR FROM '$date') >= EXTRACT(YEAR FROM g.event_begin) AND g.event_repeats != 0 AND (PERIOD_DIFF(EXTRACT(YEAR_MONTH FROM '$date'),EXTRACT(YEAR_MONTH FROM g.event_begin))) <= g.event_repeats ".$cat_sql." 
 UNION ALL
-SELECT h.*,'Weekly' AS type FROM " . WP_CALENDAR_TABLE . " AS h WHERE h.event_recur = 'W' AND '$date' >= h.Eve_Sdate AND h.event_repeats = 0 ".$cat_sql." 
+SELECT h.*,'Weekly' AS type FROM " . WP_CALENDAR_TABLE . " AS h WHERE h.event_recur = 'W' AND '$date' >= h.event_begin AND h.event_repeats = 0 ".$cat_sql." 
 UNION ALL
-SELECT i.*,'Weekly' AS type FROM " . WP_CALENDAR_TABLE . " AS i WHERE i.event_recur = 'W' AND '$date' >= i.Eve_Sdate AND i.event_repeats != 0 AND (i.event_repeats*7) >= (TO_DAYS('$date') - TO_DAYS(i.Eve_Tdate)) ".$cat_sql." 
-ORDER BY Eve_id";
+SELECT i.*,'Weekly' AS type FROM " . WP_CALENDAR_TABLE . " AS i WHERE i.event_recur = 'W' AND '$date' >= i.event_begin AND i.event_repeats != 0 AND (i.event_repeats*7) >= (TO_DAYS('$date') - TO_DAYS(i.event_end)) ".$cat_sql." 
+ORDER BY event_id";
 
      // Run the collated code
      $events =$wpdb->get_results($sql);
+
      if (!empty($events))
        {
 	 foreach($events as $event)
@@ -2513,21 +2514,21 @@ ORDER BY Eve_id";
 
 		 // Technically we don't care about the years, but we need to find out if the
 		 // event spans the turn of a year so we can deal with it appropriately.
-		 $year_begin = date('Y',strtotime($event->Eve_Sdate));
-		 $year_end = date('Y',strtotime($event->Eve_Tdate));
+		 $year_begin = date('Y',strtotime($event->event_begin));
+		 $year_end = date('Y',strtotime($event->event_end));
 
 		 if ($year_begin == $year_end)
 		   {
-		     if (date('m-d',strtotime($event->Eve_Sdate)) <= date('m-d',strtotime($date)) &&
-			 date('m-d',strtotime($event->Eve_Tdate)) >= date('m-d',strtotime($date)))
+		     if (date('m-d',strtotime($event->event_begin)) <= date('m-d',strtotime($date)) &&
+			 date('m-d',strtotime($event->event_end)) >= date('m-d',strtotime($date)))
 		       {
-			 array_push($arr_events, $event);
+                        array_push($arr_events, $event);
 		       }
 		   }
 		 else if ($year_begin < $year_end)
 		   {
-		     if (date('m-d',strtotime($event->Eve_Sdate)) <= date('m-d',strtotime($date)) ||
-			 date('m-d',strtotime($event->Eve_Tdate)) >= date('m-d',strtotime($date)))
+		     if (date('m-d',strtotime($event->event_begin)) <= date('m-d',strtotime($date)) ||
+			 date('m-d',strtotime($event->event_end)) >= date('m-d',strtotime($date)))
 		       {
 			 array_push($arr_events, $event);
 		       }
@@ -2540,21 +2541,21 @@ ORDER BY Eve_id";
 
 		 // Technically we don't care about the years or months, but we need to find out if the
 		 // event spans the turn of a year or month so we can deal with it appropriately.
-		 $month_begin = date('m',strtotime($event->Eve_Sdate));
-		 $month_end = date('m',strtotime($event->Eve_Tdate));
+		 $month_begin = date('m',strtotime($event->event_begin));
+		 $month_end = date('m',strtotime($event->event_end));
 
-		 if (($month_begin == $month_end) && (strtotime($event->Eve_Sdate) <= strtotime($date)))
+		 if (($month_begin == $month_end) && (strtotime($event->event_begin) <= strtotime($date)))
 		   {
-		     if (date('d',strtotime($event->Eve_Sdate)) <= date('d',strtotime($date)) &&
-			 date('d',strtotime($event->Eve_Tdate)) >= date('d',strtotime($date)))
+		     if (date('d',strtotime($event->event_begin)) <= date('d',strtotime($date)) &&
+			 date('d',strtotime($event->event_end)) >= date('d',strtotime($date)))
 		       {
 			 array_push($arr_events, $event);
 		       }
 		   }
-		 else if (($month_begin < $month_end) && (strtotime($event->Eve_Sdate) <= strtotime($date)))
+		 else if (($month_begin < $month_end) && (strtotime($event->event_begin) <= strtotime($date)))
 		   {
-		     if ( ($event->Eve_Sdate <= date('Y-m-d',strtotime($date))) && (date('d',strtotime($event->Eve_Sdate)) <= date('d',strtotime($date)) ||
-			   date('d',strtotime($event->Eve_Tdate)) >= date('d',strtotime($date))) )
+		     if ( ($event->event_begin <= date('Y-m-d',strtotime($date))) && (date('d',strtotime($event->event_begin)) <= date('d',strtotime($date)) ||
+			   date('d',strtotime($event->event_end)) >= date('d',strtotime($date))) )
 		       {
 			 array_push($arr_events, $event);
 		       }
@@ -2566,21 +2567,21 @@ ORDER BY Eve_id";
 
 		 // Technically we don't care about the years or months, but we need to find out if the
 		 // event spans the turn of a year or month so we can deal with it appropriately.
-		 $month_begin = date('m',strtotime($event->Eve_Sdate));
-		 $month_end = date('m',strtotime($event->Eve_Tdate));
+		 $month_begin = date('m',strtotime($event->event_begin));
+		 $month_end = date('m',strtotime($event->event_end));
 
 		 // Setup some variables and get some values
-		 $dow = date('w',strtotime($event->Eve_Sdate));
+		 $dow = date('w',strtotime($event->event_begin));
 		 if ($dow == 0) { $dow = 7; }
-		 $start_ent_this = dt_of_sun($date,np_of_day($event->Eve_Sdate),$dow);
-		 $start_ent_prev = dt_of_sun(date('Y-m-d',strtotime($date.'-1 month')),np_of_day($event->Eve_Sdate),$dow);
-		 $len_ent = strtotime($event->Eve_Tdate)-strtotime($event->Eve_Sdate);
+		 $start_ent_this = dt_of_sun($date,np_of_day($event->event_begin),$dow);
+		 $start_ent_prev = dt_of_sun(date('Y-m-d',strtotime($date.'-1 month')),np_of_day($event->event_begin),$dow);
+		 $len_ent = strtotime($event->event_end)-strtotime($event->event_begin);
 
 		 // The grunt work
-		 if (($month_begin == $month_end) && (strtotime($event->Eve_Sdate) <= strtotime($date)))
+		 if (($month_begin == $month_end) && (strtotime($event->event_begin) <= strtotime($date)))
 		   {
 		     // The checks
-		     if (strtotime($event->Eve_Sdate) <= strtotime($date) && strtotime($event->Eve_Tdate) >= strtotime($date)) // Handle the first occurance
+		     if (strtotime($event->event_begin) <= strtotime($date) && strtotime($event->event_end) >= strtotime($date)) // Handle the first occurance
 		       {
 			 array_push($arr_events, $event);
 		       }
@@ -2589,10 +2590,10 @@ ORDER BY Eve_id";
 			 array_push($arr_events, $event);
 		       }
 		   }
-		 else if (($month_begin < $month_end) && (strtotime($event->Eve_Sdate) <= strtotime($date)))
+		 else if (($month_begin < $month_end) && (strtotime($event->event_begin) <= strtotime($date)))
 		   {
 		     // The checks
-		     if (strtotime($event->Eve_Sdate) <= strtotime($date) && strtotime($event->Eve_Tdate) >= strtotime($date)) // Handle the first occurance
+		     if (strtotime($event->event_begin) <= strtotime($date) && strtotime($event->event_end) >= strtotime($date)) // Handle the first occurance
 		       {
                          array_push($arr_events, $event);
 		       }
@@ -2614,8 +2615,8 @@ ORDER BY Eve_id";
 		 // Now we are going to check to see what day the original event
 		 // fell on and see if the current date is both after it and on
 		 // the correct day. If it is, display the event!
-		 $day_start_event = date('D',strtotime($event->Eve_Sdate));
-		 $day_end_event = date('D',strtotime($event->Eve_Tdate));
+		 $day_start_event = date('D',strtotime($event->event_begin));
+		 $day_end_event = date('D',strtotime($event->event_end));
 		 $current_day = date('D',strtotime($date));
 
 		 $plan = array();
@@ -2827,8 +2828,7 @@ function calendar($cat_list = '')
 	    $p .= '            <option value="';
 	    $p .= date("Y",ctwo())-$past;
 	    $p .= '"'.calendar_year_comparison(date("Y",ctwo())-$past).'>';
-	    $p .= date("Y",ctwo())-$past.'</option>
-';
+	    $p .= date("Y",ctwo())-$past.'</option>';
 	    $past = $past - 1;
 	  }
 	while ($fut < $future) 
@@ -2912,8 +2912,7 @@ function calendar($cat_list = '')
 		      {
 			$no_events_class = ' no-events';
 		      }
-		    $calendar_body .= '        <td class="'.(date("Ymd", mktime (0,0,0,$c_month,$i,$c_year))==date("Ymd",ctwo())?'current-day':'day-with-date').$no_events_class.'"><span '.($ii<7&&$ii>1?'':'class="weekend"').'>'.$i++.'</span><span class="event"><br />' . draw_events($grabbed_events) . '</span></td>
-';
+		    $calendar_body .= '        <td class="'.(date("Ymd", mktime (0,0,0,$c_month,$i,$c_year))==date("Ymd",ctwo())?'current-day':'day-with-date').$no_events_class.'"><span '.($ii<7&&$ii>1?'':'class="weekend"').'>'.$i++.'</span><span class="event"><br />' . draw_events($grabbed_events) . '</span></td>';
 		  }
 		else
 		  {
@@ -2923,21 +2922,17 @@ function calendar($cat_list = '')
 		      {
 			$no_events_class = ' no-events';
 		      }
-		    $calendar_body .= '        <td class="'.(date("Ymd", mktime (0,0,0,$c_month,$i,$c_year))==date("Ymd",ctwo())?'current-day':'day-with-date').$no_events_class.'"><span '.($ii<6?'':'class="weekend"').'>'.$i++.'</span><span class="event"><br />' . draw_events($grabbed_events) . '</span></td>
-';
+		    $calendar_body .= '        <td class="'.(date("Ymd", mktime (0,0,0,$c_month,$i,$c_year))==date("Ymd",ctwo())?'current-day':'day-with-date').$no_events_class.'"><span '.($ii<6?'':'class="weekend"').'>'.$i++.'</span><span class="event"><br />' . draw_events($grabbed_events) . '</span></td>';
 		  }
 	      }
             else 
 	      {
-		$calendar_body .= '        <td class="day-without-date">&nbsp;</td>
-';
+		$calendar_body .= '        <td class="day-without-date">&nbsp;</td>';
 	      }
         }
-        $calendar_body .= '</tr>
-';
+        $calendar_body .= '</tr>';
     }
-    $calendar_body .= '</table>
-';
+    $calendar_body .= '</table>';
     $show_cat = $wpdb->get_var("SELECT config_value FROM ".WP_CALENDAR_CONFIG_TABLE." WHERE config_item='enable_categories'",0,0);
 
     if ($show_cat == 'true')
@@ -2945,15 +2940,13 @@ function calendar($cat_list = '')
 	$sql = "SELECT * FROM " . WP_CALENDAR_CATEGORIES_TABLE . " ORDER BY category_name ASC";
 	$cat_details = $wpdb->get_results($sql);
         $calendar_body .= '<table class="cat-key">
-<tr><td colspan="2" class="cat-key-cell"><strong>'.__('Category Key','calendar').'</strong></td></tr>
-';
+<tr><td colspan="2" class="cat-key-cell"><strong>'.__('Category Key','calendar').'</strong></td></tr>';
         foreach($cat_details as $cat_detail)
 	  {
 	    $calendar_body .= '<tr><td style="background-color:'.$cat_detail->category_colour.'; width:20px; height:20px;" class="cat-key-cell"></td>
 <td class="cat-key-cell">&nbsp;'.$cat_detail->category_name.'</td></tr>';
 	  }
-        $calendar_body .= '</table>
-';
+        $calendar_body .= '</table>';
       }
 
     // A little link to yours truly
@@ -2992,8 +2985,8 @@ function minical_draw_events($events,$day_of_week = '')
     // Now process the events
     foreach($events as $event)
       {
-	if ($event->Eve_Stime == '00:00:00') { $the_time = 'all day'; } else { $the_time = 'at '.date(get_option('time_format'), strtotime(stripslashes($event->Eve_Stime))); } 
-	$output .= '* <strong>'.$event->Eve_Title.'</strong> '.$the_time.'<br />';
+	if ($event->event_time == '00:00:00') { $the_time = 'all day'; } else { $the_time = 'at '.date(get_option('time_format'), strtotime(stripslashes($event->event_time))); } 
+	$output .= '* <strong>'.$event->event_title.'</strong> '.$the_time.'<br />';
       }
     // The tail
     $output .= '</span></a></span>';
