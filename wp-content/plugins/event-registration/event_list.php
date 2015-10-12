@@ -1,75 +1,84 @@
 <?php
 function all_event_list()
 {
-      global $wpdb;
+      global $wpdb,$table_prefix;
+      $table_prefix = $wpdb->prefix;
       $i = 1;
       $current_user = wp_get_current_user();
       $cuser = $current_user->user_login;
-      echo '
-      <table>
-            <tr>
-            <th>S.No</th>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Venue</th>
-            <th>Start Date & Time</th>
-            <th>End Date & Time</th>
-            <th>Author</th>
-            </tr>';
-      $result1 = $wpdb->get_row( "SELECT * FROM wp_users where user_login='$cuser'");
-      $cu1 =  $result1->user_email;
-      $cuid = $result1->ID;
-
-      $result = $wpdb->get_results( "SELECT * FROM wp_event_users where Eve_User_Id='$cuid'"); 
-
-      foreach($result as $row)
+      $result = $wpdb->get_results( "SELECT * FROM ".$table_prefix."event_users where Eve_User_Id='$cuid'"); 
+      if(empty($result))
       {
-            $eveid = $row->Eve_id;
-            $result2 = $wpdb->get_results("Select * from wp_event_reg where Eve_id = '$eveid'");
-            foreach($result2 as $row2)
-            {
-            echo '<tr>
-                  <td>'.$i++.'</td>
-                  <td>'.$row2->Eve_Title.'</td>
-                  <td>'.$row2->Eve_Desc.'</td>
-                  <td>'.$row2->Eve_Venue.'</td>
-                  <td>'.$row2->Eve_Sdate.'</td>
-                  <td>'.$row2->Eve_Tdate.'</td>
-                  <td>'.$row2->Eve_Author.'</td>
-            </tr>';
-            }
+            echo "No invitations";
       }
-      echo '</table>';
+      else
+      {
+             echo '
+            <table>
+                  <tr>
+                  <th>S.No</th>
+                  <th>Title</th>
+                  <th>Description</th>
+                  <th>Venue</th>
+                  <th>Start Date & Time</th>
+                  <th>End Date & Time</th>
+                  <th>Author</th>
+                  </tr>';
+            $result1 = $wpdb->get_row( "SELECT * FROM ".$table_prefix."users where user_login='$cuser'");
+            $cu1 =  $result1->user_email;
+            $cuid = $result1->ID;
+
+            $result = $wpdb->get_results( "SELECT * FROM ".$table_prefix."event_users where Eve_User_Id='$cuid'"); 
+
+            foreach($result as $row)
+            {
+                  $eveid = $row->Eve_id;
+                  $result2 = $wpdb->get_results("Select * from ".$table_prefix."calendar where event_id = '$eveid'");
+                  foreach($result2 as $row2)
+                  {
+                  echo '<tr>
+                        <td>'.$i++.'</td>
+                        <td>'.$row2->event_title.'</td>
+                        <td>'.$row2->event_desc.'</td>
+                        <td>'.$row2->event_venue.'</td>
+                        <td>'.$row2->event_begin.'</td>
+                        <td>'.$row2->event_end.'</td>
+                        <td>'.$row2->event_author.'</td>
+                  </tr>';
+                  }
+            }
+            echo '</table>';     
+      }
 }
 
 
 function created_event()
 {
       global $wpdb, $table_prefix;
+      
       if($_GET['action']=='delete')
       {
-            $tablename1 =  $table_prefix . 'event_reg';
+            $tablename1 =  $table_prefix . 'calendar';
             $data = array( 
-                  'Eve_Status' => 1
+                  'event_status' => 1
             );
             $formats = array( 
                   '%d'
             ); 
             $whe=array(
-                  'Eve_id'=> $_GET['id']
+                  'event_id'=> $_GET['id']
             );
             
             //For inserting data in wp_event_users 
             $wpdb->update($tablename1, $data, $whe, $formats);
-
             wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me/');
             exit;
       }
       else
       {
             $current_user = wp_get_current_user();
-            $cuser = $current_user->user_login;
-            $result = $wpdb->get_results( "SELECT * FROM wp_event_reg where Eve_Author='$cuser' AND Eve_Status='0'"); 
+            $cuid = $current_user->ID;
+            $result = $wpdb->get_results( "SELECT * FROM ".$table_prefix."calendar where event_author='$cuid' AND event_status='0'"); 
             $i = 1;
             if(empty($result))
             {
@@ -92,20 +101,18 @@ function created_event()
                   
                   foreach($result as $row)
                   {
-                        $id = $row->Eve_id;
-                        
+                        $id = $row->event_id;
                         echo '
                               <tr>
                                     <td>'.$i++.'</td>
-                                    <td>'.$row->Eve_Title.'</td>
-                                    <td>'.$row->Eve_Desc.'</td>
-                                    <td>'.$row->Eve_Venue.'</td>
-                                    <td>'.$row->Eve_Sdate.'</td>
-                                    <td>'.$row->Eve_Tdate.'</td>
-                                    <td>'.$row->Eve_Author.'</td>
-                                    <td><a href="http://localhost/wordpress/?p=43&eid='.$row->Eve_id.'">Edit</a>/<a href="'.site_url().'/index.php/customer-area/events-lists/created-by-me?action=delete&id='.$id.'">Delete</a></td>
+                                    <td>'.$row->event_title.'</td>
+                                    <td>'.$row->event_desc.'</td>
+                                    <td>'.$row->event_venue.'</td>
+                                    <td>'.$row->event_begin.'</td>
+                                    <td>'.$row->event_end.'</td>
+                                    <td>'.$row->event_author.'</td>
+                                    <td><a href="'.site_url().'/index.php/customer-area/edit-event?eid='.$id.'">Edit</a>/<a href="'.site_url().'/index.php/customer-area/events-lists/created-by-me?action=delete&id='.$id.'">Delete</a></td>
                               </tr>';
-
                   }
                   echo '</table>';
             }

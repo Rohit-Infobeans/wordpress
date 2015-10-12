@@ -93,14 +93,10 @@ div {
          #tdate
         {
               width: 45%;
-              float:left;
-              display:inline-block;
+
               margin-right:10%;
         }
-        #ttime
-        {
-              width:45%;     
-        }
+
         
         .selectivity-input {
     display: inline-block;

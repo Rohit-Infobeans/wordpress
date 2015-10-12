@@ -42,20 +42,22 @@ function wptuts_scripts_load_cdn()
 add_action( 'wp_enqueue_scripts', 'wptuts_scripts_load_cdn' );
 
 
-function registration_form( $eve_id, $eve_title, $eve_sdate, $eve_stime, $eve_tdate, $eve_ttime, $eve_venue, $eve_users) 
+function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repeat, $recur, $eve_venue, $eve_users, $desc) 
 {
-      global $wpdb;
+      global $wpdb, $table_prefix;
+      
       $current_user = wp_get_current_user();
       $cid = $current_user->ID;
-      $result1 = $wpdb->get_row( "SELECT Eve_id FROM wp_event_reg ORDER BY Eve_id desc LIMIT 0,1");
-
-      if(isset($result1 ->Eve_id) && empty($result1 ->Eve_id))
+      $result1 = $wpdb->get_row( "SELECT event_id FROM ".$table_prefix."calendar ORDER BY event_id desc LIMIT 0,1");
+      //echo $wpdb->last_query;
+      //die;
+      if(isset($result1 ->event_id) && empty($result1 ->event_id))
       {
             $i = 1;
       }
       else
       {
-            $i = $result1->Eve_id;
+            $i = $result1->event_id;
       }
       echo '
       <form action="' . $_SERVER['REQUEST_URI'] . '" method="post">
@@ -69,9 +71,8 @@ function registration_form( $eve_id, $eve_title, $eve_sdate, $eve_stime, $eve_td
             </div>
             <div class="input-text" id="basicExample">
                   <input type="text" class="custom_date" name="start_date" placeholder="From Date" id="fdate" value="'.( isset( $_POST['start_date'] ) ? $eve_sdate : null ).'"/>
-                  <input type="text" class="time start" id="ftime"  placeholder="Start Time"  name="start_time" value = "'.( isset( $_POST['start_time'] ) ? $eve_stime : null ) .'"/>
                   <input type="text" class="custom_date" name="to_date" placeholder="To Date" id="tdate" value="'.( isset( $_POST['to_date'] ) ? $eve_tdate : null ).'"/>
-                  <input type="text" class="time end" id="ttime" placeholder="End Time" name="to_time" value="'.( isset( $_POST['to_time'] ) ? $eve_ttime : null ).'"/>
+                  <input type="text" class="time start" id="ftime"  placeholder="Start Time"  name="start_time" value = "'.( isset( $_POST['start_time'] ) ? $eve_stime : null ) .'"/>
                   <script>
                         // initialize input widgets first
                         $("#basicExample .time").timepicker({
@@ -86,8 +87,15 @@ function registration_form( $eve_id, $eve_title, $eve_sdate, $eve_stime, $eve_td
                   <span id="doperror"></span>
             </div>
             <div class="input-text">
-                  <input type="checkbox" name="product" />All Day Event &nbsp;&nbsp;
-                  <input type="checkbox" name="product" />Repeat<br />
+                  <lable>Recurrance</lable>
+                  <input type="text" name="event_repeats" class="input" size="1" value="0">
+                  <select name="event_recur" class="input">
+						<option class="input" value="S">None</option>
+						<option class="input" value="W">Weeks</option>
+						<option class="input" value="M">Months (date)</option>
+						<option class="input" value="U">Months (day)</option>
+						<option class="input" value="Y">Years</option>
+					</select>
                   <span id="proerror"></span>
             </div>
             <div class="input-text">
@@ -119,29 +127,29 @@ function registration_form( $eve_id, $eve_title, $eve_sdate, $eve_stime, $eve_td
 
 }
 
-function edit_registration_form($eve_id, $eve_title, $eve_sdate, $eve_stime, $eve_tdate, $eve_ttime, $eve_venue, $eve_users) 
+function edit_registration_form($eve_title, $eve_sdate, $eve_stime, $eve_tdate, $repeat, $recur, $eve_venue, $eve_users, $desc) 
 {
-      global $wpdb;
+      global $wpdb, $table_prefix;
       $id = $_GET['eid'];
       $i = 1;
-      $result = $wpdb->get_results( "SELECT * FROM wp_event_reg where Eve_id='$id'"); 
+      $result = $wpdb->get_results( "SELECT * FROM ".$table_prefix."calendar where event_id='$id'"); 
       foreach($result as $row)
       {
             echo '
             <form action="' . $_SERVER['REQUEST_URI'] . '" method="post">
                   <div class="input-text">
-                        <input type="hidden" name = "event_id" id="eventid" value="'.$row->Eve_id .'" readonly/>
+                        <input type="hidden" name = "event_id" id="eventid" value="'.$row->event_id .'" readonly/>
                         <span id="generror"></span>
                   </div>
                   <div class="input-text">
-                        <input type="text" name = "event_title" id="eventtitle" value="'.( isset( $_POST['event_title'] ) ? $eve_title : $row->Eve_Title ).'"placeholder="Event Title"/>
+                        <input type="text" name = "event_title" id="eventtitle" value="'.( isset( $_POST['event_title'] ) ? $eve_title : $row->event_title ).'"placeholder="Event Title"/>
                         <span id="generror"></span>
                   </div>
                   <div class="input-text" id="basicExample">
-                        <input type="text" class="custom_date" name="start_date" placeholder="From Date" id="fdate" value="'.( isset( $_POST['start_date'] ) ? $eve_sdate : $row->Eve_Sdate ).'"/>
-                        <input type="text" class="time start" id="ftime"  placeholder="Start Time"  name="start_time" value = "'.( isset( $_POST['start_time'] ) ? $eve_stime : $row->Eve_Stime ) .'"/>
-                        <input type="text" class="custom_date" name="to_date" placeholder="To Date" id="tdate" value="'.( isset( $_POST['to_date'] ) ? $eve_tdate : $row->Eve_Tdate ).'"/>
-                        <input type="text" class="time end" id="ttime" placeholder="End Time" name="to_time" value="'.( isset( $_POST['to_time'] ) ? $eve_ttime : $row->Eve_Ttime ).'"/>
+                        <input type="text" class="custom_date" name="start_date" placeholder="From Date" id="fdate" value="'.( isset( $_POST['start_date'] ) ? $eve_sdate : $row->event_begin ).'"/>
+                        <input type="text" class="custom_date" name="to_date" placeholder="To Date" id="tdate" value="'.( isset( $_POST['to_date'] ) ? $eve_tdate : $row->event_end ).'"/>
+                        <input type="text" class="time start" id="ftime"  placeholder="Start Time"  name="start_time" value = "'.( isset( $_POST['start_time'] ) ? $eve_stime : $row->event_time ) .'"/>
+                        
                         <script>
                               // initialize input widgets first
                               $("#basicExample .time").timepicker({
@@ -156,12 +164,19 @@ function edit_registration_form($eve_id, $eve_title, $eve_sdate, $eve_stime, $ev
                         <span id="doperror"></span>
                   </div>
                   <div class="input-text">
-                        <input type="checkbox" name="product" />All Day Event &nbsp;&nbsp;
-                        <input type="checkbox" name="product" />Repeat<br />
+                        <lable>Recurrance</lable>
+                              <input type="text" name="event_repeats" class="input" size="1" value="0">
+                              <select name="event_recur" class="input">
+						<option class="input" value="S">None</option>
+						<option class="input" value="W">Weeks</option>
+						<option class="input" value="M">Months (date)</option>
+						<option class="input" value="U">Months (day)</option>
+						<option class="input" value="Y">Years</option>
+					</select>
                         <span id="proerror"></span>
                   </div>
                   <div class="input-text">
-                        <input type="text" id="venue" name="venue" placeholder="Venue" value="'.( isset( $_POST['venue'] ) ? $eve_venue : $row->Eve_Venue ).'"/><br />
+                        <input type="text" id="venue" name="venue" placeholder="Venue" value="'.( isset( $_POST['venue'] ) ? $eve_venue : $row->event_venue ).'"/><br />
                         <span id="lnerror"></span>
                   </div>
                   <div class="input-text">';
@@ -186,7 +201,7 @@ function edit_registration_form($eve_id, $eve_title, $eve_sdate, $eve_stime, $ev
                   </div>
 
                   <div class="input-text">
-                        <textarea placeholder="Event Description" rows="6" cols="100" name="desc">'.$row->Eve_Desc.'</textarea>
+                        <textarea placeholder="Event Description" rows="6" cols="100" name="desc">'.$row->event_desc.'</textarea>
                         <span id="doperror"></span>
                   </div>
                   <div class="input-text">
