@@ -68,9 +68,7 @@ div {
         color: rgba(255,255,255,0.5);
         }
 
-        span {
-        color: red;
-        }
+
 
         button {
         padding: 5px;
@@ -101,4 +99,13 @@ div {
         .selectivity-input {
     display: inline-block;
     width: 250px;
+}
+#regform .input-text label.error {
+    color: #FB3A3A;
+    display: inline-block;
+    margin: 4px 0 5px 0px;
+    padding: 0;
+    text-align: left;
+    width: 400px;
+    font-weight: bold;
 }

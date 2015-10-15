@@ -20,7 +20,7 @@ function escape(string) {
                     };
                 }).get();
 
-                var transformText = $.fn.selectivity.transformText;
+                var transformText = jQuery.fn.selectivity.transformText;
 
                 // example query function that returns at most 10 cities matching the given text
                 function queryFunction(query) {

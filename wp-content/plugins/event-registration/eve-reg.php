@@ -15,12 +15,13 @@ require_once($dir.'event_list.php');
 require_once($dir.'invitation.php');
 
 
+
 //Used to create table for plugin when activated
 function event_manager()
 {
       // do NOT forget this global
-      global $wpdb;
       
+      global $wpdb;
       $appointment = $wpdb->prefix. 'calendar';
       $eveuser = $wpdb->prefix.  'event_users';
       // this if statement makes sure that the table doe not exist already
@@ -74,27 +75,9 @@ function registration_validation( $eve_title, $eve_sdate, $eve_tdate, $eve_stime
       {
             $reg_errors->add( 'eventtitle_length', 'Event title too short' );
       }
-      if(strtotime($eve_tdate) < strtotime($eve_sdate))
-      {
-            echo strtotime($eve_tdate) ."HITHISISATEST". strtotime($eve_sdate);
-            die;
-            ///$reg_errors->add( 'evendate', 'To date cannot be past date ' );
-      }
-      if(empty($eve_stime))
-      {
-            $reg_errors->add( 'eventime', 'Please specify time' );
-      }
-      if((($repeat  == 0) && (!empty($recur))))
-      {
-            $reg_errors->add( 'evenrecur', 'Recur' );
-      }
-      else if(($repeat  != 0) && (empty($recur)))
-      {
-            $reg_errors->add( 'evenrecur', 'Recur1' );
-      }
+     
       if ( is_wp_error( $reg_errors ) ) 
       {
- 
             foreach ( $reg_errors->get_error_messages() as $error ) 
             {     
                     echo '<div style="color:red">';
@@ -108,15 +91,14 @@ function registration_validation( $eve_title, $eve_sdate, $eve_tdate, $eve_stime
 //Function to insert data in table
 function complete_registration() 
 {
-      global $wpdb, $table_prefix, $reg_errors;
+      global $reg_errors;
+      global $wpdb, $table_prefix;
       if ( 1 > count( $reg_errors->get_error_messages() ) ) 
-      {
-            
+      {  
             $current_user = wp_get_current_user();
-            $cuser = $current_user->user_login;
-            
+            $cuser = $current_user->user_login;     
             $cuid = $current_user->ID;
-            echo $
+            
             $dc = date("Y-m-d");
             $status = 0;
             $active = 0;
@@ -124,7 +106,6 @@ function complete_registration()
             $user = $_POST['traditional'];
             $user[count($user)] = $cuid;
             $u = implode(",", $user);
-            
             $eid = $_POST['event_id'];
             $etitle =  $_POST['event_title'];
             $edesc = $_POST['desc'];
@@ -133,11 +114,10 @@ function complete_registration()
             $estime = $_POST['start_time'];
             $etdate = $_POST['to_date'];
             $ettime = $_POST['to_time'];
-            
-            //echo $eid;
-            //die;
+            $testtime = date("H:i", strtotime($estime));
             $tablename =  $table_prefix . 'calendar';
             $tablename1 =  $table_prefix . 'event_users';
+            
             //For inserting data in wp_event_reg
             $data = array( 
                   'event_begin' => $_POST['start_date'],
@@ -145,7 +125,7 @@ function complete_registration()
                   'event_title' => $_POST['event_title'], 
                   'event_desc' => $_POST['desc'],
                   'event_venue' => $_POST['venue'],
-                  'event_time' => $_POST['start_time'],
+                  'event_time' => $testtime,
                   'event_recur'=>$_POST['event_recur'],
                   'event_repeats'=>$_POST['event_repeats'],
                   'event_author' => $cuid,
@@ -188,6 +168,7 @@ function complete_registration()
                   '%d'
                   );
                   $wpdb->insert($tablename1, $data1, $formats1);
+
                   $result = $wpdb->get_row( "SELECT user_email FROM wp_users WHERE id='$eu[$i]'");
                   $to = $result->user_email;
                   $subject = 'Event Invitation';
@@ -239,18 +220,15 @@ function  complete_editeve()
       $status = 0;
       $active = null;
       $decline = null;
-
       $user = $_POST['traditional'];
       $u = implode(",", (array)$user);
-
       $etitle =  $_POST['event_title'];
       $edesc = $_POST['desc'];
       $evenue = $_POST['venue'];
       $esdate = $_POST['start_date'];
       $estime = $_POST['start_time'];
       $etdate = $_POST['to_date'];
-      $ettime = $_POST['to_time'];
-      
+      $ettime = $_POST['to_time'];   
       $tablename =  $table_prefix . 'calendar';
       $tablename1 =  $table_prefix . 'event_users';
       //For inserting data in wp_event_reg
@@ -540,4 +518,3 @@ function to_be_attended_list_shortcode()
       to_be_attended_list();
       return ob_get_clean();
 }
-
