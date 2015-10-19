@@ -6,6 +6,7 @@ function all_event_list()
       $i = 1;
       $current_user = wp_get_current_user();
       $cuser = $current_user->user_login;
+      $cuid = $current_user->ID;
       $result = $wpdb->get_results( "SELECT * FROM ".$table_prefix."event_users where Eve_User_Id='$cuid'"); 
       if(empty($result))
       {
@@ -43,7 +44,11 @@ function all_event_list()
                         <td>'.$row2->event_venue.'</td>
                         <td>'.$row2->event_begin.'</td>
                         <td>'.$row2->event_end.'</td>
-                        <td>'.$row2->event_author.'</td>
+                        <td>';
+                        $aid  = $row2->event_author;
+                        $res = $wpdb->get_row("Select * from wp_users where ID= '$aid'");
+                        echo $res->display_name;
+                        echo '</td>
                   </tr>';
                   }
             }
@@ -110,7 +115,12 @@ function created_event()
                                     <td>'.$row->event_venue.'</td>
                                     <td>'.$row->event_begin.'</td>
                                     <td>'.$row->event_end.'</td>
-                                    <td>'.$row->event_author.'</td>
+                                    <td>';
+                                    $aid = $row->event_author;
+                                    $res = $wpdb->get_row("Select * from ".$table_prefix."users where ID='$aid'");
+                                    echo $res->display_name;
+                                    
+                                    echo '</td>
                                     <td><a href="'.site_url().'/index.php/customer-area/edit-event?eid='.$id.'">Edit</a>/<a href="'.site_url().'/index.php/customer-area/events-lists/created-by-me?action=delete&id='.$id.'">Delete</a></td>
                               </tr>';
                   }

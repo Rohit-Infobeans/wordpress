@@ -1,104 +1,116 @@
-div {
-        margin-bottom:2px;
-    }
-     .ba
-    .input-text 
-        {
-            display: block;
-            margin-bottom: 20px;
-            clear:both;
-        }
-        .input-text input[type="text"] 
-        {
-            outline: none;
-            border: 0;
-            border-bottom: 2px solid #ddd;
-            width: 100%;
-            display: block;
-            font-size: 24px;
-            transition: all .4s ease-in-out;
-            color: #333;
-            font-weight: 500;
-        }
+#content1 { background: white;  margin: 5px auto;  width: 738px; }
 
-        .input-text input[type="text"]:focus {
-        border-color: #999;
-        }
+.input-text 
+  {
+      display: block;
+      margin-bottom: 20px;
+      clear:both;
+  }
+  .input-text input[type="text"] 
+  {
+      outline: none;
+      border-bottom: 2px solid #ddd;
+      width: 94%;
+      display: block;
+      font-size: 16px;
+      transition: all .4s ease-in-out;
+      color: #333;
+      font-weight: 500;
+      margin-bottom: 20px;
+  }
 
-        .input-text select
-        {
-            outline: none;
-            border: 0;
-            border-bottom: 2px solid #ddd;
-            width: 100%;
-            display: block;
-            font-size: 24px;
-            transition: all .4s ease-in-out;
-            color: #333;
-            font-weight: 500;
-        }
+  .input-text input[type="text"]:focus {
+  border-color: #999;
+  }
+  
+  .input-text select
+  {
+      outline: none;
+      
+      border-bottom: 2px solid #ddd;
+      width: 94%;
+      display: block;
+      font-size: 16px;
+      transition: all .4s ease-in-out;
+      color: #333;
+      font-weight: 500;
+      margin-bottom: 20px;
+  }
 
-        .input-text select:focus {
-        border-color: #999;
-        }
-        
-        .input-button {
-        margin-top: 50px;
-        }
+  .input-text select:focus {
+  border-color: #999;
+  }
+  
+  .input-button {
+  margin-top: 50px;
+  }
 
-        .input-button button {
-        color: #fff;
-        font-size: 32px;
-        height: 80px;
-        width: 80px;
-        text-align: center;
-        line-height: 80px;
-        border-radius: 80px;
-        position: absolute;
-        bottom: -30px;
-        right: -30px;
-        border: 0;
-        background: linear-gradient(to bottom right, #2ecc71,#3498db);
-        box-shadow: 0 0 5px rgba(0,0,0,0.2);
-        cursor: pointer;
-        }
+  .input-button button {
+  color: #fff;
+  font-size: 32px;
+  height: 80px;
+  width: 80px;
+  text-align: center;
+  line-height: 80px;
+  border-radius: 80px;
+  position: absolute;
+  bottom: -30px;
+  right: -30px;
+  border: 0;
+  background: linear-gradient(to bottom right, #2ecc71,#3498db);
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+  cursor: pointer;
+  }
 
-        .input-button button:focus, .input-button button:hover {
-        outline: none;
-        color: rgba(255,255,255,0.5);
-        }
+  .input-button button:focus, .input-button button:hover {
+  outline: none;
+  color: rgba(255,255,255,0.5);
+  }
 
-        span {
-        color: red;
-        }
 
-        button {
+
+  button 
+  {
         padding: 5px;
         border-radius: 5px;
         height: 50px;
         width: 100px;
         background: orange;
-        }
-        #fdate
-        {
-              width: 45%;
-              float:left;
-              display:inline-block;
-              margin-right:10%;
-        }
-        #ftime
-        {
-              width:45%;              
-        }
-         #tdate
-        {
-              width: 45%;
+  }
+  #fdate, #rep
+  {
+        width: 42%;
+        float:left;
+        display:inline-block;
+        margin-right:10%;
+  }
+  #ftime
+  {
+        width: 42%;
+        float:left;
+        display:inline-block;
+        margin-right:10%;          
+  }
+   #tdate, #recop
+  {
+        width: 42%;
+        margin-right:10%;
+  }
+  #ttime
+  {
+        width:42%;              
+  }
+#evedesc
+{
+      width:100%;
+      margin-bottom:20px;
+}
+#recu
+{
+      display:none;
+}
+.error
+{
 
-              margin-right:10%;
-        }
-
-        
-        .selectivity-input {
-    display: inline-block;
-    width: 250px;
+      color:red;
 }

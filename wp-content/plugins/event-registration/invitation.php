@@ -6,6 +6,7 @@ function all_invitaion_list()
       $i = 1;
       $current_user = wp_get_current_user();
       $cuser = $current_user->user_login;
+      $cuid = $current_user->ID;
       $result = $wpdb->get_results( "SELECT * FROM ".$table_prefix."event_users where Eve_User_Id='$cuid'"); 
       if(empty($result))
       {
@@ -47,7 +48,12 @@ function all_invitaion_list()
                               <td>'.$row2->event_venue.'</td>
                               <td>'.$row2->event_begin.' '.$row2->event_time.'</td>
                               <td>'.$row2->event_end.'</td>
-                              <td>'.$row2->event_author.'</td>';
+                              <td>';
+                              $aid = $row2->event_author;
+                              $res = $wpdb->get_row("Select * from ".$table_prefix."users where ID='$aid'");
+                              echo $res->display_name;
+                              
+                              echo '</td>';
                               if($accepted == 0 && $declined == 1)
                               {
                                     echo '<td>Accepted</td>';
@@ -72,6 +78,7 @@ function pending_invitaion_list()
 {
       global $wpdb, $table_prefix;
       $current_user = wp_get_current_user();
+      $uid=$_GET['uid'];
       if($_GET['status'] == "yes")
       {            
             $tablename1 =  $table_prefix . 'event_users';
@@ -86,11 +93,37 @@ function pending_invitaion_list()
             ); 
             $whe=array(
                   'id'=> $_GET['id'],
-                  'Eve_User_Id' => $_GET['uid']
+                  'Eve_User_Id' => $uid
             );
 
             $wpdb->update($tablename1, $data, $whe, $formats);
-            
+            $res = $wpdb->get_row("Select * from ".$table_prefix."users where ID='$uid'");
+            $to = $res->user_email;
+            $subject = $res->display_name.' accepted your invitation';
+            $message = '
+            <div id="email_container" style="background:#444">
+                  <div style="width:570px; padding:0 0 0 20px; margin:50px auto 12px auto" id="email_header">
+                        <span style="background:#585858; color:#fff; padding:12px;font-family:trebuchet ms; letter-spacing:1px; 
+                        -moz-border-radius-topleft:5px; -webkit-border-top-left-radius:5px; 
+                        border-top-left-radius:5px;moz-border-radius-topright:5px; -webkit-border-top-right-radius:5px; 
+                        border-top-right-radius:5px;">
+                        Invitation Accepted</div>
+                  </div>
+                  <div style="width:550px; padding:0 20px 20px 20px; background:#fff; margin:0 auto; border:3px #000 solid;
+                        moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px; color:#454545;line-height:1.5em; " id="email_content">
+
+                        <h1 style="padding:5px 0 0 0; font-family:georgia;font-weight:500;font-size:24px;color:#000;border-bottom:1px solid #bbb">
+                              '.$res->display_name.' accepted invitation
+                        </h1>
+
+                        <p>
+                              '.$res->display_name.' will be attending the event organised by you.
+                        </p>
+                                                
+                  </div>
+            </div>';
+            $headers= "MIME-Version: 1.0\n" ."Content-Type: text/html; charset=\"" . get_option('blog_charset') . "\"\n";
+            wp_mail($to, $subject, $message, $headers);
             wp_redirect(site_url().'/index.php/customer-area/events-lists/to-be-attended/');
             exit;
       }
@@ -126,7 +159,7 @@ function pending_invitaion_list()
             $result = $wpdb->get_results( "SELECT * FROM ".$table_prefix."event_users where Eve_User_Id='$cuid' AND Accepted = '0' AND Declined = '0'"); 
             if(empty($result))
             {
-                  echo "Please see Pending requests";
+                  echo "No Pending requests";
             }
             else
             {
