@@ -74,7 +74,7 @@ function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repe
       <form action="' . $_SERVER['REQUEST_URI'] . '" method="post" id="content1">
             <div class="input-text">
                   <input type="hidden" name = "event_id" id="eventid" value="'.($i+1).'" readonly />
-                  <span id="generror"></span>
+                  
             </div>
             <div class="input-text">
                   <input type="text" name = "event_title" id="eventtitle" value="'.( isset( $_POST['event_title'] ) ? $eve_title : null ).'"placeholder="Event Title"/>
@@ -194,7 +194,7 @@ function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repe
                   <span  id="error"></span>
             </div>
             <div class="input-text">
-                  <input type="submit" name="submit" value="Create Event"/>
+                  <button type="submit" name="submit">Submit</button>
             </div>
       </form>
       ';
@@ -345,8 +345,7 @@ function edit_registration_form($eve_title, $eve_sdate, $eve_stime, $eve_tdate, 
                         } 
                         echo '
                         <select data-placeholder="Add Guests" class="chosen-select" multiple name="traditional[]">';
-                              $result3 = $wpdb->get_results( "SELECT * FROM ".$table_prefix."users WHERE ID NOT IN (SELECT Eve_User_Id FROM ".$table_prefix."event_users WHERE Eve_id='$id')"); 
-                              
+                              $result3 = $wpdb->get_results( "SELECT * FROM ".$table_prefix."users WHERE ID NOT IN (SELECT Eve_User_Id FROM ".$table_prefix."event_users WHERE Eve_id='$id')");                            
                               foreach($result3 as $row3)
                               {
                                     echo '<option value="'.$row3->ID.'">'.$row3->display_name.'</option>';

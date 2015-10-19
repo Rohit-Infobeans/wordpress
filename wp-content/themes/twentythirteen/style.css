@@ -1000,7 +1000,7 @@ ul.nav-menu .focus > ul,
 .entry-summary,
 .entry-meta {
 	margin: 0 auto;
-	max-width: 604px;
+	max-width: 80%;
 	width: 100%;
 }
 

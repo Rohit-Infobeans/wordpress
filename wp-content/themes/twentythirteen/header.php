@@ -8,6 +8,7 @@
  * @subpackage Twenty_Thirteen
  * @since Twenty Thirteen 1.0
  */
+ ob_start();
 ?><!DOCTYPE html>
 <!--[if IE 7]>
 <html class="ie ie7" <?php language_attributes(); ?>>

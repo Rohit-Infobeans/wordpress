@@ -1,5 +1,4 @@
  jQuery(function() {
-  
     jQuery.validator.addMethod("time", "Please enter a valid time.");
 	
     jQuery("#content1").validate({
@@ -28,10 +27,10 @@
        errorPlacement: function(error, element) {
         error.appendTo(element.parent('.input-text'));
     },
+
         
         submitHandler: function(form) {
             form.submit();
         }
     });
-
   });
