@@ -1074,7 +1074,7 @@ function wp_events_edit_form($mode='add', $event_id=false)
 						<option class="input" <?php echo $selected_s; ?> value="S"><?php _e('None') ?></option>
 						<option class="input" <?php echo $selected_w; ?> value="W"><?php _e('Weeks') ?></option>
 						<option class="input" <?php echo $selected_m; ?> value="M"><?php _e('Months (date)') ?></option>
-						<option class="input" <?php echo $selected_u; ?> value="U"><?php _e('Months (day)') ?></option>
+
 						<option class="input" <?php echo $selected_y; ?> value="Y"><?php _e('Years') ?></option>
 					</select><br />
 					<?php _e('Entering 0 means forever. Where the recurrance interval is left at none, the event will not reoccur.','calendar'); ?>
@@ -2285,14 +2285,31 @@ function time_cmp($a, $b)
 // Used to draw multiple events
 function draw_events($events)
 {
+   global $wpdb, $table_prefix;
   // We need to sort arrays of objects by time
   usort($events, "time_cmp");
   $output = '';
+  $current_user = wp_get_current_user();
+  $cid = $current_user->ID;
+  
   // Now process the events
   foreach($events as $event)
     {
-
-      $output .= draw_event($event).'<br />';
+          $eid  = $event->event_id;
+  $result = $wpdb->get_results("SELECT * FROM ".$table_prefix."event_users WHERE Eve_id= '$eid' AND Eve_User_Id='$cid'");
+  //echo $wpdb->last_query;
+  //die;
+      foreach($result as $row)
+      {
+            if($row->Accepted == 0 && $row->Declined == 1)
+            {
+                  $output .= draw_event($event).'<br />';
+            }
+            else
+            {
+                 $output .= " ";
+            }
+      }
     }
   return $output;
 }
