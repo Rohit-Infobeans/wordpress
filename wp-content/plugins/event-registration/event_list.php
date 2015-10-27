@@ -15,16 +15,17 @@ function all_event_list()
       else
       {
              echo '
-            <table>
+            <table id="data">
+                  <thead>
                   <tr>
-                  <th>S.No</th>
-                  <th>Title</th>
-                  <th>Description</th>
-                  <th>Venue</th>
-                  <th>Start Date & Time</th>
-                  <th>End Date & Time</th>
-                  <th>Author</th>
-                  </tr>';
+                        <th>S.No</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Venue</th>
+                        <th>Start Date & Time</th>
+                        <th>End Date & Time</th>
+                        <th>Author</th>
+                  </tr></thead><tbody>';
             $result1 = $wpdb->get_row( "SELECT * FROM ".$table_prefix."users where user_login='$cuser'");
             $cu1 =  $result1->user_email;
             $cuid = $result1->ID;
@@ -38,13 +39,13 @@ function all_event_list()
                   foreach($result2 as $row2)
                   {
                   echo '<tr>
-                        <td>'.$i++.'</td>
-                        <td>'.$row2->event_title.'</td>
-                        <td>'.$row2->event_desc.'</td>
-                        <td>'.$row2->event_venue.'</td>
-                        <td>'.$row2->event_begin.'</td>
-                        <td>'.$row2->event_end.'</td>
-                        <td>';
+                              <td>'.$i++.'</td>
+                              <td>'.$row2->event_title.'</td>
+                              <td>'.$row2->event_desc.'</td>
+                              <td>'.$row2->event_venue.'</td>
+                              <td>'.$row2->event_begin.'</td>
+                              <td>'.$row2->event_end.'</td>
+                              <td>';
                         $aid  = $row2->event_author;
                         $res = $wpdb->get_row("Select * from wp_users where ID= '$aid'");
                         echo $res->display_name;
@@ -52,7 +53,7 @@ function all_event_list()
                   </tr>';
                   }
             }
-            echo '</table>';     
+            echo '</tbody></table>';     
       }
 }
 
@@ -60,9 +61,10 @@ function all_event_list()
 function created_event()
 {
       global $wpdb, $table_prefix;
-      
       if($_GET['action']=='delete')
       {
+
+            $eid = $_GET['id'];
             $tablename1 =  $table_prefix . 'calendar';
             $data = array( 
                   'event_status' => 1
@@ -71,13 +73,34 @@ function created_event()
                   '%d'
             ); 
             $whe=array(
-                  'event_id'=> $_GET['id']
+                  'event_id'=> $eid
             );
             
             //For inserting data in wp_event_users 
             $wpdb->update($tablename1, $data, $whe, $formats);
+            $result = $wpdb->get_results( "SELECT * FROM wp_event_users WHERE Eve_id ='$eid'");
+
+            foreach($result as $row)
+            {
+                  $uid = $row->Eve_User_Id;
+                  $result1 = $wpdb->get_row( "SELECT user_email FROM wp_users WHERE ID ='$uid'");
+                  $bnfw = BNFW::factory();
+                  if ($bnfw->notifier->notification_exists('delete-event'))
+                  {
+                        $notifications = $bnfw->notifier->get_notifications('delete-event');
+                        foreach ($notifications as $notification) 
+                        {
+                              $setting = $bnfw->notifier->read_settings($notification->ID);
+                              $to = $result->user_email;
+                              $message  = 'Event has been cancelled';
+                              $subject = $setting['subject'];
+                              $headers= "MIME-Version: 1.0\n" ."Content-Type: text/html; charset=\"" . get_option('blog_charset') . "\"\n";
+                              wp_mail( $to,  $subject , wpautop( $message  ), $headers );
+                        } 
+                  }
+            }
             wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me/');
-            exit;
+            exit;                  
       }
       else
       {
@@ -92,7 +115,8 @@ function created_event()
             else
             {
                   echo '
-                  <table>
+                  <table id="data">
+                  <thead>
                         <tr>
                               <th>S.No</th>
                               <th>Title</th>
@@ -102,7 +126,7 @@ function created_event()
                               <th>End Date & Time</th>
                               <th>Author</th>
                               <th>Edit/Delete</th>
-                        </tr>';
+                        </tr></thead></tbody>';
                   
                   foreach($result as $row)
                   {
@@ -124,7 +148,55 @@ function created_event()
                                     <td><a href="'.site_url().'/index.php/customer-area/edit-event?eid='.$id.'">Edit</a>/<a href="'.site_url().'/index.php/customer-area/events-lists/created-by-me?action=delete&id='.$id.'">Delete</a></td>
                               </tr>';
                   }
-                  echo '</table>';
+                  echo '</tbody></table>';
             }
+      }
+}
+
+function to_be_attended_list()
+{
+      global $wpdb, $table_prefix;
+      $current_user = wp_get_current_user();
+      $cuser = $current_user->ID;
+      $i = 1;
+      
+      $result = $wpdb->get_results( "SELECT * FROM ".$table_prefix."event_users where Eve_User_Id='$cuser' AND Accepted = '0' AND Declined = '1'"); 
+      
+      if(empty($result))
+      {
+            echo "No Pending Requests";
+      }
+      else
+      {
+            echo '
+            <table id="data">
+                  <thead>
+                  <tr>
+                  <th>S.No</th>
+                  <th>Title</th>
+                  <th>Description</th>
+                  <th>Venue</th>
+                  <th>Start Date & Time</th>
+                  <th>End Date & Time</th>
+                  </tr></thead><tbody>';
+            foreach($result as $row)
+            {
+                  $id = $row->id;
+                  $eveid = $row->Eve_id;
+                  $result2 = $wpdb->get_results("Select * from ".$table_prefix."calendar where event_id = '$eveid' AND event_status='0'");
+                  foreach($result2 as $row2)
+                  {
+                  echo '
+                  <tr>
+                        <td>'.$i++.'</td>
+                        <td>'.$row2->event_title.'</td>
+                        <td>'.$row2->event_desc.'</td>
+                        <td>'.$row2->event_venue.'</td>
+                        <td>'.$row2->event_begin.' '.$row2->event_time.'</td>
+                        <td>'.$row2->event_end.'</td>
+                  </tr>';
+                  }
+            }
+            echo '</tbody></table>';
       }
 }

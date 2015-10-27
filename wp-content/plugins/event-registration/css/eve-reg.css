@@ -110,3 +110,30 @@
 {
       color:red;
 }
+#nav
+{
+      text-align:right;
+}
+#nav a 
+{
+      color:white;
+      border-radius:5px;
+      padding:10px;
+      margin:2px;
+      background:#ffa500;
+}
+#nav a:hover
+{
+      text-decoration:none;
+
+      background: #ffa500;
+      color:black;
+}
+.active
+{      
+      color:black;
+      
+      background:#ff6600;
+      padding :10px;
+
+}
