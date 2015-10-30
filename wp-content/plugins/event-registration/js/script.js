@@ -1,12 +1,15 @@
 jQuery(document).ready(function(){
             jQuery('#data').after('<div id="nav"></div>');
+            var curRows;
             var rowsShown = 10;
             var rowsTotal = jQuery('#data tbody tr').length;
             var numPages = rowsTotal/rowsShown;
+            var curRows = rowsTotal - rowsShown;
             for(i = 0;i < numPages;i++) {
                 var pageNum = i + 1;
                 jQuery('#nav').append('<a href="#" rel="'+i+'">'+pageNum+'</a> ');
             }
+           
             jQuery('#data tbody tr').hide();
             jQuery('#data tbody tr').slice(0, rowsShown).show();
             jQuery('#nav a:first').addClass('active');

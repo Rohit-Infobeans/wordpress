@@ -14,7 +14,8 @@ require_once($dir.'eve-reg-display.php');
 require_once($dir.'event_list.php');
 require_once($dir.'invitation.php');
 require_once($dir.'dash_cal.php');
-
+require_once($dir.'checkslot.php');
+global $eventtable, $usertable;
 //Table Names
 $eventtable =  $table_prefix . 'calendar';
 $usertable =  $table_prefix . 'event_users';

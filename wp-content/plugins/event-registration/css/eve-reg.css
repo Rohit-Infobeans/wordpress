@@ -116,11 +116,11 @@
 }
 #nav a 
 {
-      color:white;
+      color:black;
       border-radius:5px;
       padding:10px;
       margin:2px;
-      background:#ffa500;
+     border:1px solid #ffa500;
 }
 #nav a:hover
 {
@@ -132,8 +132,61 @@
 .active
 {      
       color:black;
-      
       background:#ff6600;
       padding :10px;
 
+}
+table.dataTable td,
+table.dataTable th {
+	-webkit-box-sizing: content-box;
+	-moz-box-sizing: content-box;
+	box-sizing: content-box;
+}
+
+
+table.dataTable {
+	clear: both;
+	margin-top: 6px !important;
+	margin-bottom: 6px !important;
+	max-width: none !important;
+}
+
+table.dataTable thead .sorting,
+table.dataTable thead .sorting_asc,
+table.dataTable thead .sorting_desc,
+table.dataTable thead .sorting_asc_disabled,
+table.dataTable thead .sorting_desc_disabled {
+	cursor: pointer;
+}
+
+table.dataTable thead .sorting { background: url('../../media/images/sort_both.png') no-repeat center right; }
+table.dataTable thead .sorting_asc { background: url('../../media/images/sort_asc.png') no-repeat center right; }
+table.dataTable thead .sorting_desc { background: url('../../media/images/sort_desc.png') no-repeat center right; }
+
+table.dataTable thead .sorting_asc_disabled { background: url('../../media/images/sort_asc_disabled.png') no-repeat center right; }
+table.dataTable thead .sorting_desc_disabled { background: url('../../media/images/sort_desc_disabled.png') no-repeat center right; }
+
+table.dataTable th:active {
+	outline: none;
+}
+table.table-bordered.dataTable {
+	border-collapse: separate !important;
+}
+table.table-bordered thead th,
+table.table-bordered thead td {
+	border-left-width: 0;
+	border-top-width: 0;
+}
+table.table-bordered tbody th,
+table.table-bordered tbody td {
+	border-left-width: 0;
+	border-bottom-width: 0;
+}
+table.table-bordered th:last-child,
+table.table-bordered td:last-child {
+	border-right-width: 0;
+}
+.links
+{
+      text-decoration:none;
 }

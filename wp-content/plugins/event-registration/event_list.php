@@ -15,17 +15,19 @@ function all_event_list()
       else
       {
              echo '
-            <table id="data">
+            <table class="table table-striped table-bordered table-hover" id="data">
                   <thead>
-                  <tr>
-                        <th>S.No</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Venue</th>
-                        <th>Start Date & Time</th>
-                        <th>End Date & Time</th>
-                        <th>Author</th>
-                  </tr></thead><tbody>';
+                        <tr>
+                              <th>S.No</th>
+                              <th>Title</th>
+                              <th>Description</th>
+                              <th>Venue</th>
+                              <th>Start Date & Time</th>
+                              <th>End Date & Time</th>
+                              <th>Author</th>
+                        </tr>
+                  </thead>
+                  <tbody>';
             $result1 = $wpdb->get_row( "SELECT * FROM ".$table_prefix."users where user_login='$cuser'");
             $cu1 =  $result1->user_email;
             $cuid = $result1->ID;
@@ -38,22 +40,27 @@ function all_event_list()
                   $result2 = $wpdb->get_results("Select * from ".$table_prefix."calendar where event_id = '$eveid'");
                   foreach($result2 as $row2)
                   {
-                  echo '<tr>
+                        $start_time = date('h:ia', strtotime($row2->event_stime));
+                        $end_time = date('h:ia', strtotime($row2->event_etime));
+                        echo '
+                        <tr   class="odd gradeX">
                               <td>'.$i++.'</td>
                               <td>'.$row2->event_title.'</td>
                               <td>'.$row2->event_desc.'</td>
                               <td>'.$row2->event_venue.'</td>
-                              <td>'.$row2->event_begin.'</td>
-                              <td>'.$row2->event_end.'</td>
+                              <td>Date: '.$row2->event_begin.'<br/>Time: '.$start_time.'</td>
+                              <td>Date: '.$row2->event_end.'<br/>Time: '.$end_time.'</td>
                               <td>';
-                        $aid  = $row2->event_author;
-                        $res = $wpdb->get_row("Select * from wp_users where ID= '$aid'");
-                        echo $res->display_name;
-                        echo '</td>
-                  </tr>';
+                              $aid  = $row2->event_author;
+                              $res = $wpdb->get_row("Select * from wp_users where ID= '$aid'");
+                              echo $res->display_name;
+                              echo '</td>
+                        </tr>';
                   }
             }
-            echo '</tbody></table>';     
+            echo '
+            </tbody>
+      </table>';
       }
 }
 
@@ -61,6 +68,14 @@ function all_event_list()
 function created_event()
 {
       global $wpdb, $table_prefix;
+      if($_GET['status']=='added')
+      {
+            echo '
+            <script>
+                  alert("Event added toy your google calendar");
+            </script>
+            ';
+      }
       if($_GET['action']=='delete')
       {
 
@@ -106,7 +121,7 @@ function created_event()
       {
             $current_user = wp_get_current_user();
             $cuid = $current_user->ID;
-            $result = $wpdb->get_results( "SELECT * FROM ".$table_prefix."calendar where event_author='$cuid' AND event_status='0'"); 
+            $result = $wpdb->get_results( "SELECT * FROM ".$table_prefix."calendar where event_author='$cuid' AND event_status='0' ORDER BY event_datecreated DESC"); 
             $i = 1;
             if(empty($result))
             {
@@ -115,36 +130,39 @@ function created_event()
             else
             {
                   echo '
-                  <table id="data">
-                  <thead>
-                        <tr>
-                              <th>S.No</th>
-                              <th>Title</th>
-                              <th>Description</th>
-                              <th>Venue</th>
-                              <th>Start Date & Time</th>
-                              <th>End Date & Time</th>
-                              <th>Author</th>
-                              <th>Edit/Delete</th>
-                        </tr></thead></tbody>';
-                  
+                  <table class="table table-striped table-bordered table-hover" id="data">
+                        <thead>
+                              <tr>
+                                    <th>S.No</th>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                    <th>Venue</th>
+                                    <th>Start Date & Time</th>
+                                    <th>End Date & Time</th>
+                                    <th>Author</th>
+                                    <th>Created On</th>
+                                    <th>Edit/Delete</th>
+                              </tr>
+                        </thead>
+                        </tbody>';
                   foreach($result as $row)
                   {
+                        $start_time = date('h:ia', strtotime($row->event_stime));
+                        $end_time = date('h:ia', strtotime($row->event_etime));
                         $id = $row->event_id;
                         echo '
-                              <tr>
+                              <tr class="odd gradeX">
                                     <td>'.$i++.'</td>
                                     <td>'.$row->event_title.'</td>
                                     <td>'.$row->event_desc.'</td>
                                     <td>'.$row->event_venue.'</td>
-                                    <td>'.$row->event_begin.'</td>
-                                    <td>'.$row->event_end.'</td>
+                                    <td>Date: '.$row->event_begin.'<br/>Time: '.$start_time.'</td>
+                                    <td>Date: '.$row->event_end.'<br/>Time: '.$end_time.'</td>
                                     <td>';
                                     $aid = $row->event_author;
                                     $res = $wpdb->get_row("Select * from ".$table_prefix."users where ID='$aid'");
-                                    echo $res->display_name;
-                                    
-                                    echo '</td>
+                                    echo $res->display_name. '</td>
+                                    <td>'.$row->event_datecreated.'</td>
                                     <td><a href="'.site_url().'/index.php/customer-area/edit-event?eid='.$id.'">Edit</a>/<a href="'.site_url().'/index.php/customer-area/events-lists/created-by-me?action=delete&id='.$id.'">Delete</a></td>
                               </tr>';
                   }
@@ -164,39 +182,48 @@ function to_be_attended_list()
       
       if(empty($result))
       {
-            echo "No Pending Requests";
+            echo "No Events to attend";
       }
       else
       {
             echo '
-            <table id="data">
+            <table class="table table-striped table-bordered table-hover" id="data">
                   <thead>
-                  <tr>
-                  <th>S.No</th>
-                  <th>Title</th>
-                  <th>Description</th>
-                  <th>Venue</th>
-                  <th>Start Date & Time</th>
-                  <th>End Date & Time</th>
-                  </tr></thead><tbody>';
+                        <tr>
+                        <th>S.No</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Venue</th>
+                        <th>Start Date & Time</th>
+                        <th>End Date & Time</th>
+                        </tr>
+                  </thead>
+                  <tbody>';
             foreach($result as $row)
             {
                   $id = $row->id;
                   $eveid = $row->Eve_id;
+                  $todays_date = date('Y-m-d');
                   $result2 = $wpdb->get_results("Select * from ".$table_prefix."calendar where event_id = '$eveid' AND event_status='0'");
                   foreach($result2 as $row2)
                   {
-                  echo '
-                  <tr>
-                        <td>'.$i++.'</td>
-                        <td>'.$row2->event_title.'</td>
-                        <td>'.$row2->event_desc.'</td>
-                        <td>'.$row2->event_venue.'</td>
-                        <td>'.$row2->event_begin.' '.$row2->event_time.'</td>
-                        <td>'.$row2->event_end.'</td>
-                  </tr>';
+                        $start_time = date('h:ia', strtotime($row2->event_stime));
+                        $end_time = date('h:ia', strtotime($row2->event_etime));
+                        if($row2->event_begin>=$todays_date)
+                        {
+                              echo '
+                              <tr class="odd gradeX">
+                                    <td>'.$i++.'</td>
+                                    <td>'.$row2->event_title.'</td>
+                                    <td>'.$row2->event_desc.'</td>
+                                    <td>'.$row2->event_venue.'</td>
+                                    <td>Date: '.$row2->event_begin.'<br/>Time: '.$start_time.'</td>
+                                    <td>Date: '.$row2->event_end.'<br/>Time: '.$end_time.'</td>
+                              </tr>';
+                        }
                   }
             }
-            echo '</tbody></table>';
+            echo '</tbody>
+            </table>';
       }
 }

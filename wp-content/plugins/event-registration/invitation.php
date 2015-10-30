@@ -20,7 +20,7 @@ function all_invitaion_list()
     </script>
 <?php
             echo '
-                  <table id="data">
+                  <table class="table table-striped table-bordered table-hover"  id="data">
                         <thead>
                               <tr>
                                     <th>S.No</th>
@@ -29,7 +29,6 @@ function all_invitaion_list()
                                     <th>Venue</th>
                                     <th>Start Date & Time</th>
                                     <th>End Date & Time</th>
-                                    
                                     <th> My Response</th>
                               </tr>
                         </thead>
@@ -40,29 +39,32 @@ function all_invitaion_list()
                   $accepted = $row->Accepted;
                   $declined = $row->Declined;
                   $eveid = $row->Eve_id;
-                  $result2 = $wpdb->get_results("Select * from ".$eventtable." where event_id = '$eveid' ORDER BY event_begin ASC");
+                  $result2 = $wpdb->get_results("Select * from ".$eventtable." where event_id = '$eveid'");
+
                   foreach($result2 as $row2)
                   {
+                        $start_time = date('h:ia', strtotime($row2->event_stime));
+                        $end_time = date('h:ia', strtotime($row2->event_etime));
                         echo '
-                        <tr>
+                        <tr  class="odd gradeX">
                               <td>'.$event_id++.'</td>
                               <td>'.$row2->event_title.'</td>
                               <td>'.$row2->event_desc.'</td>
                               <td>'.$row2->event_venue.'</td>
-                              <td>'.$row2->event_begin.' '.$row2->event_time.'</td>
-                              <td>'.$row2->event_end.'</td>';
-                              
+                              <td>Date: '.$row2->event_begin.'<br/>Time: '.$start_time.'</td>
+                              <td>Date: '.$row2->event_end.'<br/>Time: '.$end_time.'</td>
+                              <td class="center">';
                               if($accepted == 0 && $declined == 1){
-                                    echo '<td><span class="label label-sm label-success">
+                                    echo '<span class="label label-sm label-success">
                               Accepted </span>';
                               }else if($accepted == 1 && $declined == 0){
-                                    echo '<td> <span class="label label-sm label-warning">
-                              Declined</span></td>';
+                                    echo '<span class="label label-sm label-warning">
+                              Declined</span>';
                               }else {
-                                    echo '<td><span class="label label-sm label-default">
-                              Pending </span></td>';
+                                    echo '<span class="label label-sm label-default">
+                              Pending </span>';
                               }
-                        echo '</tr>';
+                        echo '</td></tr>';
                   }
             }
             echo '</tbody>
@@ -81,43 +83,20 @@ function pending_invitaion_list()
       
       if($_GET['status'] == "yes")
       {            
+            $id = $_GET['id'];
             $data = array( 
                    'Accepted' => 0,
                   'Declined' => 1
             );
             $formats = array( '%d', '%d'); 
             $whe=array(
-                  'id'=> $_GET['id'],
+                  'Eve_id'=> $id,
                   'Eve_User_Id' => $uid
             );
 
             $wpdb->update($usertable, $data, $whe, $formats);
             
-            $res = $wpdb->get_row("Select * from ".$table_prefix."users where ID='$uid'");
-            $to = $res->user_email;
-            $subject = $res->display_name.' accepted your invitation';
-            $message = '
-            <div id="email_container" style="background:#444">
-                  <div style="width:570px; padding:0 0 0 20px; margin:50px auto 12px auto" id="email_header">
-                        <span style="background:#585858; color:#fff; padding:12px;font-family:trebuchet ms; letter-spacing:1px; 
-                        -moz-border-radius-topleft:5px; -webkit-border-top-left-radius:5px; 
-                        border-top-left-radius:5px;moz-border-radius-topright:5px; -webkit-border-top-right-radius:5px; 
-                        border-top-right-radius:5px;">
-                        Invitation Accepted</div>
-                  </div>
-                  <div style="width:550px; padding:0 20px 20px 20px; background:#fff; margin:0 auto; border:3px #000 solid;
-                        moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px; color:#454545;line-height:1.5em; " id="email_content">
-                        <h1 style="padding:5px 0 0 0; font-family:georgia;font-weight:500;font-size:24px;color:#000;border-bottom:1px solid #bbb">
-                              '.$res->display_name.' accepted invitation
-                        </h1>
-                        <p>
-                              '.$res->display_name.' will be attending the event organised by you.
-                        </p>
-                  </div>
-            </div>';
-            $headers= "MIME-Version: 1.0\n" ."Content-Type: text/html; charset=\"" . get_option('blog_charset') . "\"\n";
-            wp_mail($to, $subject, $message, $headers);
-            wp_redirect(site_url().'/index.php/customer-area/events-lists/to-be-attended/');
+            wp_redirect(site_url().'/wp-content/plugins/event-registration/google-api/quickstart.php?uid='.$uid.'&eid='.$id);
             exit;
       }
       else if($_GET['status'] == "no")
@@ -153,7 +132,7 @@ function pending_invitaion_list()
             else
             {
                   echo '
-                  <table id="data">
+                  <table class="table table-striped table-bordered table-hover"  id="data">
                   <thead>
                         <tr>
                               <th>S.No</th>
@@ -169,19 +148,25 @@ function pending_invitaion_list()
                   {
                         $id = $row->id;
                         $eveid = $row->Eve_id;
+                        $todays_date = date('Y-m-d');
                         $result2 = $wpdb->get_results("Select * from ".$eventtable." where event_id = '$eveid'");
+                        //echo $wpdb->last_query;
+                        //die;
                         foreach($result2 as $row2)
                         {
+                              $start_time = date('h:ia', strtotime($row2->event_stime));
+                              $end_time = date('h:ia', strtotime($row2->event_etime));
+                              if($row2->event_begin>=$todays_date){
                               echo '
-                              <tr>
+                              <tr  class="odd gradeX">
                                     <td>'.$i++.'</td>
                                     <td>'.$row2->event_title.'</td>
                                     <td>'.$row2->event_desc.'</td>
                                     <td>'.$row2->event_venue.'</td>
-                                    <td>'.$row2->event_begin.'</td>
-                                    <td>'.$row2->event_end.'</td>
-                                    <td><a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=yes&id='.$id.'&uid='.$cuid.'">Accepted</a>/<a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=no&id='.$id.'&uid='.$cuid.'">Decline</a></td>
-                              </tr>';
+                                    <td>Date: '.$row2->event_begin.'<br/>Time: '.$start_time.'</td>
+                                    <td>Date: '.$row2->event_end.'<br/>Time: '.$end_time.'</td>
+                                    <td class="center"><a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=yes&id='.$id.'&uid='.$cuid.'" class="links">Accepted</a>/<a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=no&id='.$id.'&uid='.$cuid.'" class="links">Decline</a></td>
+                              </tr>';}
                         }
                   }
                   echo 

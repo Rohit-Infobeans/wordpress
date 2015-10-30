@@ -4,6 +4,7 @@ function wptuts_scripts_load_cdn()
       // Register the library again from Google's CDN
       wp_register_script( 'jquery', 'http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js', array(), null, false );
       wp_register_script( 'jquery2', 'http://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js', array(), null, false );
+      wp_register_script( 'jquery3', 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.js', array(), null, false );
       // Register the script like this for a plugin:
       wp_register_script( 'ui-script', plugins_url( 'js/jqueryui.js', __FILE__ ), array( 'jquery' ) );
       wp_register_script( 'custom-script', plugins_url( 'js/script.js', __FILE__ ), array( 'jquery' ) );
@@ -16,6 +17,8 @@ function wptuts_scripts_load_cdn()
       wp_enqueue_style('jquery-ui-css', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
       wp_enqueue_style( 'eve-style' );
       wp_enqueue_script('jquery2');
+      wp_enqueue_script('jquery');
+      
       //For date and time picker
       wp_register_script( 'jQuerytimepicker', plugins_url( 'js/jquery.timepicker.js', __FILE__ ), array( 'jquery' ) );
       wp_register_script( 'bootstrapdatepicker', plugins_url( 'js/bootstrap-datepicker.js', __FILE__ ), array( 'jquery' ) );
@@ -44,12 +47,9 @@ function wptuts_scripts_load_cdn()
       wp_enqueue_script( 'prismjs' );
       
       //For pagination
-      wp_register_style( 'fontawesome', plugins_url( 'css/Tables/font-awesome/css/font-awesome.min.css', __FILE__ ) );
       wp_register_style( 'table_bootstrap', plugins_url( 'css/Tables/bootstrap.min.css', __FILE__ ) );
       wp_register_style( 'datatable_bootstrap', plugins_url( 'css/Tables/dataTables.bootstrap.css', __FILE__ ) );
 
-
-      wp_enqueue_style( 'fontawesome' );
       wp_enqueue_style( 'table_bootstrap');
       wp_enqueue_style( 'datatable_bootstrap');    
 
@@ -143,9 +143,10 @@ function complete_registration($title, $sdate, $tdate,$stime, $ttime, $repeat, $
             $event_user =explode(",", $u);
             for($i=0;$i<count($event_user);$i++)
             {
+                  $eid = $_POST['event_id'];
                   //$user_event is for the users info invited for the event
                   $user_event = array( 
-                        'Eve_id' => $_POST['event_id'],
+                        'Eve_id' => $eid,
                         'Eve_User_Id' => $event_user[$i], 
                         'Accepted' => $accepted,
                         'Declined' => $decline, 
@@ -202,6 +203,7 @@ function complete_registration($title, $sdate, $tdate,$stime, $ttime, $repeat, $
       }
 }
 
+
 function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repeat, $recur, $eve_venue, $eve_users, $desc) 
 {
       global $wpdb, $usertable, $eventtable;
@@ -218,21 +220,47 @@ function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repe
       {
             $i = $result1->event_id;
       }
+      ?>
+      <script>
+      jQuery(document).ready(function(){
+            jQuery('#ftime').change(check_slot);
+      })
+      function check_slot()
+      {	
+            var sdate = jQuery('#fdate').val();
+            var stime = jQuery('#ftime').val();
+            var cid = <?php echo $cid;?>;
+            jQuery.ajax({
+                  type: "GET",
+                  url: "<?php echo plugin_dir_url( $file );?>event-registration/checkslot.php",
+                  action: 'test',
+                  data: 'sdate='+ sdate+ '&stime='+ stime+ '&cid='+cid,
+                  cache: false,
+                  success:function(data) {
+            // This outputs the result of the ajax request
+            console.log(data);
+        },
+        error: function(errorThrown){
+            console.log(errorThrown);
+        }
+
+            }); 
+      }
+      </script>
+      <?php
       echo '
       <form action="' . $_SERVER['REQUEST_URI'] . '" method="post" id="content1">
             <div class="input-text">
                   <input type="hidden" name = "event_id" id="eventid" value="'.($i+1).'" readonly />   
             </div>
             <div class="input-text">
-                  <input type="text" name = "event_title" id="eventtitle" value="'.( isset( $_POST['event_title'] ) ? $eve_title : null ).'"placeholder="Event Title"/>
+                  <input type="text" name = "event_title" id="eventtitle" value="'.( isset( $_POST['event_title'] ) ? $eve_title : null ).'"placeholder="Event Title" />
                   <span  id="error"></span>
             </div>
             <div class="input-text" id="dateandtime">
                   <input type="text" class="date start"  placeholder="Start Date" id="fdate" name = "start_date"/>
                   <input type="text" class="date end" placeholder="End Date" id="tdate" name="to_date"/>
-                  <input type="text" class="time start" placeholder="Start Time" id="ftime" name="start_time" onchange="';
-                  
-                  echo '"/>
+                  <input type="text" class="time start" placeholder="Start Time" id="ftime" name="start_time"/>
                   <input type="text" class="time end" placeholder = "End Time" id="ttime" name="to_time"/>
                    
                   <input type="checkbox" id = "ad" name="allday" value="All Day" onclick="ShowHideDiv(this)"> All Day<br/>
