@@ -95,8 +95,7 @@ function pending_invitaion_list()
             );
 
             $wpdb->update($usertable, $data, $whe, $formats);
-            
-            wp_redirect(site_url().'/wp-content/plugins/event-registration/google-api/quickstart.php?uid='.$uid.'&eid='.$id);
+            wp_redirect(site_url().'/wp-content/plugins/event-registration/google-api/quickstart.php?uid='.$uid.'&eid='.$id.'&code=');
             exit;
       }
       else if($_GET['status'] == "no")

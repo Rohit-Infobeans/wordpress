@@ -2,9 +2,6 @@
 
 function calendar_scripts1()
 {
-      // Register the library again from Google's CDN
-      wp_register_script( 'jquery', 'http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js', array(), null, false );
-
       // Register the scripts and style like this for a plugin:
       wp_register_style( 'fullcal', plugins_url( 'css/fullcalendar.min.css', __FILE__ ) );
       wp_register_script( 'fullcalendar_moment', plugins_url( 'js/moment.min.js', __FILE__ ), array( 'jquery' ) );
@@ -80,7 +77,7 @@ function dashboard_calendar1()
       foreach($event_user as $row)
       {
             $eveid = $row->Eve_id;
-            $events = $wpdb->get_results( "SELECT event_title as title, CONCAT(`event_begin`,'T',`event_stime`) as start, CONCAT(`event_end`,'T',`event_etime`) as end, event_repeats, event_recur FROM ".$eventtable." where event_id='$eveid' AND event_status='0'");
+            $events = $wpdb->get_results( "SELECT event_title, CONCAT(`event_begin`,'T',`event_stime`) as start, CONCAT(`event_end`,'T',`event_etime`) as end FROM ".$eventtable." where event_id='$eveid' AND event_status='0'");
             $rows = array(); //This is used as an array for collecting event information in form of associated array
             foreach($events as $row1)
             {
@@ -95,7 +92,7 @@ function dashboard_calendar1()
             $data .=  json_encode($rows);
       }
       $data =  str_replace("][",",",$data);
-      $data =  str_replace(",,",",",$data);
+      $data =  str_replace(",,"," ",$data);
       ?>
       <script>
             jQuery(document).ready(function() 

@@ -14,7 +14,7 @@ require_once($dir.'eve-reg-display.php');
 require_once($dir.'event_list.php');
 require_once($dir.'invitation.php');
 require_once($dir.'dash_cal.php');
-require_once($dir.'checkslot.php');
+
 global $eventtable, $usertable;
 //Table Names
 $eventtable =  $table_prefix . 'calendar';
@@ -127,7 +127,7 @@ function to_be_attended_list_shortcode()
       return ob_get_clean();
 }
 //For dashboard calendar
-add_shortcode( 'dashboard_calendar1', 'dashboard_calendar1_shortcode' );
+add_shortcode( 'dashboard_calendar', 'dashboard_calendar1_shortcode' );
 function dashboard_calendar1_shortcode() 
 {
       ob_start();

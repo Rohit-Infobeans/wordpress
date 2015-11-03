@@ -18,8 +18,8 @@
         // Specify the validation error messages
         messages: {
             event_title: "Please enter Event title",
-            start_date:"Please enter Start Date<br/>",
-            to_date:"Please enter End Date<br/>",
+            start_date:"Please enter Start Date ",
+            to_date:"Please enter End Date",
             venue: "Please enter Event venue",
             traditional:"Please enter guest",
             desc:"Please enter Event Description"

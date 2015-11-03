@@ -1,4 +1,7 @@
 <?php
+add_action('wp_ajax_check_slot','check_slot');
+add_action( 'wp_ajax_nopriv_check_slot', 'check_slot' );
+
 function wptuts_scripts_load_cdn()
 {
       // Register the library again from Google's CDN
@@ -186,8 +189,8 @@ function complete_registration($title, $sdate, $tdate,$stime, $ttime, $repeat, $
                                                 .$venue.'<br/>Event Starts at: '.$sdate.' '.$stime.'<br/>Event ends at: '.$tdate.' '.$ttime.'<br/>Event description: '.$desc.'
                                           </p>
                                           <p>
-                                                <a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=yes&id='.$eid.'&uid='.$cuid.'"><span class="myButton" id="myButton" style="box-shadow: rgb(207, 134, 108) 0px 1px 0px 0px inset; border-radius: 3px; border: 1px solid rgb(148, 41, 17); display: inline-block; cursor: pointer; color: rgb(255, 255, 255); font-family: Arial; font-size: 13px; padding: 6px 24px; text-decoration: none; text-shadow: rgb(133, 70, 41) 0px 1px 0px; background: linear-gradient(rgb(208, 69, 27) 5%, rgb(188, 51, 21) 100%) rgb(208, 69, 27);">Accept</span></a>
-                                                <a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=no&id='.$eid.'&uid='.$cuid.'"><span class="myButton" id="myButton" style="box-shadow: rgb(207, 134, 108) 0px 1px 0px 0px inset; border-radius: 3px; border: 1px solid rgb(148, 41, 17); display: inline-block; cursor: pointer; color: rgb(255, 255, 255); font-family: Arial; font-size: 13px; padding: 6px 24px; text-decoration: none; text-shadow: rgb(133, 70, 41) 0px 1px 0px; background: linear-gradient(rgb(208, 69, 27) 5%, rgb(188, 51, 21) 100%) rgb(208, 69, 27);">Decline</span></a>
+                                                <a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=yes&id='.$eid.'&uid='.$event_user[$i].'"><span class="myButton" id="myButton" style="box-shadow: rgb(207, 134, 108) 0px 1px 0px 0px inset; border-radius: 3px; border: 1px solid rgb(148, 41, 17); display: inline-block; cursor: pointer; color: rgb(255, 255, 255); font-family: Arial; font-size: 13px; padding: 6px 24px; text-decoration: none; text-shadow: rgb(133, 70, 41) 0px 1px 0px; background: linear-gradient(rgb(208, 69, 27) 5%, rgb(188, 51, 21) 100%) rgb(208, 69, 27);">Accept</span></a>
+                                                <a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=no&id='.$eid.'&uid='.$event_user[$i].'"><span class="myButton" id="myButton" style="box-shadow: rgb(207, 134, 108) 0px 1px 0px 0px inset; border-radius: 3px; border: 1px solid rgb(148, 41, 17); display: inline-block; cursor: pointer; color: rgb(255, 255, 255); font-family: Arial; font-size: 13px; padding: 6px 24px; text-decoration: none; text-shadow: rgb(133, 70, 41) 0px 1px 0px; background: linear-gradient(rgb(208, 69, 27) 5%, rgb(188, 51, 21) 100%) rgb(208, 69, 27);">Decline</span></a>
                                           </p> 				
                                     </div>
                               </div>';
@@ -203,6 +206,35 @@ function complete_registration($title, $sdate, $tdate,$stime, $ttime, $repeat, $
       }
 }
 
+function check_slot() 
+{
+      global $wpdb ,$usertable, $eventtable;
+      $sdate = $_REQUEST['s_date'];
+      $stime = $_REQUEST['s_time'];
+      $cid = $_REQUEST['c_id'];
+      $eve_num=0;
+      $estime = date("H:i:s", strtotime($stime));
+      $result = $wpdb->get_results("Select * from ".$usertable." where Eve_User_Id='$cid' AND Accepted='0' AND Declined = '1'");
+      
+      foreach($result as $row)
+      {
+            $eve_id = $row->Eve_id;
+            $resul = $wpdb->get_row("Select * from ".$eventtable." where event_id='$eve_id' AND event_status='0'");
+            
+            if($sdate == $resul->event_begin && $estime == $resul->event_stime)
+            {
+                  $eve_num = $eve_num +1;
+            }
+      }
+      if($eve_num !=0)
+      {
+            echo 1;
+      }
+      else
+      {
+            echo "Not matched";
+      }
+}
 
 function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repeat, $recur, $eve_venue, $eve_users, $desc) 
 {
@@ -231,19 +263,27 @@ function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repe
             var stime = jQuery('#ftime').val();
             var cid = <?php echo $cid;?>;
             jQuery.ajax({
-                  type: "GET",
-                  url: "<?php echo plugin_dir_url( $file );?>event-registration/checkslot.php",
-                  action: 'test',
-                  data: 'sdate='+ sdate+ '&stime='+ stime+ '&cid='+cid,
-                  cache: false,
-                  success:function(data) {
-            // This outputs the result of the ajax request
-            console.log(data);
-        },
-        error: function(errorThrown){
-            console.log(errorThrown);
-        }
-
+                  type: "POST",
+                  url : '<?php echo admin_url('admin-ajax.php'); ?>',
+                  data : {action: "check_slot", s_date : sdate, s_time: stime, c_id: cid},
+                  success:function(response) 
+                  {
+                        
+                        if(response == 10)
+                        {
+                              jQuery('#venue').prop( "readonly", true );
+                              var con = confirm("Time slot is booked for another event. Do you want to continue?");
+                              if(con == true)
+                              {
+                                    jQuery('#venue').prop( "readonly", false);
+                              }
+                              else
+                              {
+                                    location.href="<?php echo site_url().'/index.php/customer-area/events-lists/created-by-me/';?>";
+                              }
+                        }
+                        
+                  }
             }); 
       }
       </script>
@@ -291,8 +331,8 @@ function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repe
                         });
                         
                         jQuery("#dateandtime .date").datepicker({
-                          "format": "yyyy-mm-dd",
-                          "autoclose": true
+                              "format": "yyyy-mm-dd",
+                              "autoclose": true
                         });
                         
                         var dateandtimeEl = document.getElementById("dateandtime");
@@ -365,7 +405,7 @@ function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repe
                   <span  id="error"></span>
             </div>
             <div class="input-text">
-                  <button type="submit" name="submit" >Submit</button>
+                  <button type="submit" name="submit" id="sub">Submit</button>
             </div>
       </form>';
 }
@@ -524,141 +564,138 @@ function edit_registration_form($eve_title, $eve_sdate, $eve_stime, $eve_tdate, 
       global $wpdb, $usertable, $eventtable;
       $id = $_GET['eid'];
       $i = 1;
-      $result = $wpdb->get_results( "SELECT * FROM ".$eventtable." where event_id='$id'"); 
-      foreach($result as $row)
-      {
-            echo '
-            <script>
-                  jQuery( document ).ready(function() {
-                        var dvRec = document.getElementById("recu");
-                        if('.$row->event_repeats.'!=0 )
-                        {
-                              jQuery("#rec").prop("checked", true);
-                              dvRec.style.display = "block";
-                              jQuery("#rep").attr("placeholder", "Enter number of repetation");
-                              jQuery("#recop").attr("placeholder", "Select when to repeat");
-                              jQuery("#rep").attr("value", "'.$row->event_repeats.'");
-                              jQuery("#recop").attr("value", "';
-                                    if($row->event_recur=='S'){echo 'S';}
-                                    else if($row->event_recur=='W'){echo 'W';}
-                                    else if($row->event_recur=='M'){echo 'M';}
-                                    else{echo 'Y';}
-                              echo '");
-                        }
-                        else
-                        {
-                              dvRec.style.display = "none";
-                              jQuery("#rep").attr("value", "0");
-                              jQuery("#recop").attr("value", "S");
-                        }
-                  });
-            </script>
-            <form action="' . $_SERVER['REQUEST_URI'] . '" method="post" id="content1">
-                  <div class="input-text">
-                        <input type="hidden" name = "event_id" id="eventid" value="'.$row->event_id .'" readonly/>
-                  </div>
-                  <div class="input-text">
-                        <input type="text" name = "event_title" id="eventtitle" value="'.( isset( $_POST['event_title'] ) ? $eve_title : $row->event_title ).'"placeholder="Event Title"/>
-                        <span  id="error"></span>
-                  </div>
-                  <div class="input-text" id="dateandtime">
-                        <input type="text" class="date start"  placeholder="Start Date" id="fdate" name = "start_date" value="'.( isset( $_POST['start_date'] ) ? $eve_sdate : $row->event_begin ).'"/>
-                        <input type="text" class="date end" placeholder="End Date" id="tdate" name="to_date" value="'.( isset( $_POST['to_date'] ) ? $eve_tdate : $row->event_end ).'"/>
-                        <input type="text" class="time start" placeholder="Start Time" id="ftime" name="start_time" value="'.( isset( $_POST['start_time'] ) ? $eve_stime : $row->event_stime ).'"/>
-                        <input type="text" class="time end" placeholder = "End Time" id="ttime" name="to_time" value="'.( isset( $_POST['to_time'] ) ? $eve_ttime : $row->event_etime ).'"/>
+      $result = $wpdb->get_row( "SELECT * FROM ".$eventtable." where event_id='$id'"); 
+      echo '
+      <script>
+            jQuery( document ).ready(function() {
+                  var dvRec = document.getElementById("recu");
+                  if('.$result->event_repeats.'!=0 )
+                  {
+                        jQuery("#rec").prop("checked", true);
+                        dvRec.style.display = "block";
+                        jQuery("#rep").attr("placeholder", "Enter number of repetation");
+                        jQuery("#recop").attr("placeholder", "Select when to repeat");
+                        jQuery("#rep").attr("value", "'.$result->event_repeats.'");
+                        jQuery("#recop").attr("value", "';
+                              if($result->event_recur=='S'){echo 'S';}
+                              else if($result->event_recur=='W'){echo 'W';}
+                              else if($result->event_recur=='M'){echo 'M';}
+                              else{echo 'Y';}
+                        echo '");
+                  }
+                  else
+                  {
+                        dvRec.style.display = "none";
+                        jQuery("#rep").attr("value", "0");
+                        jQuery("#recop").attr("value", "S");
+                  }
+            });
+      </script>
+      <form action="' . $_SERVER['REQUEST_URI'] . '" method="post" id="content1">
+            <div class="input-text">
+                  <input type="hidden" name = "event_id" id="eventid" value="'.$result->event_id .'" readonly/>
+            </div>
+            <div class="input-text">
+                  <input type="text" name = "event_title" id="eventtitle" value="'.( isset( $_POST['event_title'] ) ? $eve_title :$result->event_title ).'"placeholder="Event Title"/>
+                  <span  id="error"></span>
+            </div>
+            <div class="input-text" id="dateandtime">
+                  <input type="text" class="date start"  placeholder="Start Date" id="fdate" name = "start_date" value="'.( isset( $_POST['start_date'] ) ? $eve_sdate : $result->event_begin ).'"/>
+                  <input type="text" class="date end" placeholder="End Date" id="tdate" name="to_date" value="'.( isset( $_POST['to_date'] ) ? $eve_tdate : $result->event_end ).'"/>
+                  <input type="text" class="time start" placeholder="Start Time" id="ftime" name="start_time" value="'.( isset( $_POST['start_time'] ) ? $eve_stime : $result->event_stime ).'"/>
+                  <input type="text" class="time end" placeholder = "End Time" id="ttime" name="to_time" value="'.( isset( $_POST['to_time'] ) ? $eve_ttime : $result->event_etime ).'"/>
 
-                        <input type="checkbox" id = "ad" name="allday" value="All Day" onclick="ShowHideDiv(this)"> All Day<br/>
-                        <script type="text/javascript">
-                              function ShowHideDiv(ad) 
+                  <input type="checkbox" id = "ad" name="allday" value="All Day" onclick="ShowHideDiv(this)"> All Day<br/>
+                  <script type="text/javascript">
+                        function ShowHideDiv(ad) 
+                        {
+                              var sTime = document.getElementById("ftime");
+                              var tTime = document.getElementById("ttime");
+                              if(ad.checked)
                               {
-                                    var sTime = document.getElementById("ftime");
-                                    var tTime = document.getElementById("ttime");
-                                    if(ad.checked)
-                                    {
-                                          sTime.style.display = "none";
-                                          tTime.style.display = "none";
-                                          jQuery("#ftime").attr("value", "10:00am");
-                                          jQuery("#ttime").attr("value", "07:00pm");
-                                    }
-                                    else
-                                    {
-                                          sTime.style.display = "inline-block";
-                                          tTime.style.display = "block";
-                                          jQuery("#ftime").attr("value", "'.date("h:ia", strtotime($row->event_stime)).'");
-                                          jQuery("#ttime").attr("value", "'.date("h:ia", strtotime($row->event_etime)).'");
-                                    }
+                                    sTime.style.display = "none";
+                                    tTime.style.display = "none";
+                                    jQuery("#ftime").attr("value", "10:00am");
+                                    jQuery("#ttime").attr("value", "07:00pm");
                               }
-                              jQuery("#dateandtime.time").timepicker({
-                                    "showDuration": true,
-                                    "timeFormat": "g:ia"
-                              });
-                              
-                              jQuery("#dateandtime.date").datepicker({
-                                    "format": "yyyy/m/d",
-                                    "autoclose": true
-                              });
+                              else
+                              {
+                                    sTime.style.display = "inline-block";
+                                    tTime.style.display = "block";
+                                    jQuery("#ftime").attr("value", "'.date("h:ia", strtotime($result->event_stime)).'");
+                                    jQuery("#ttime").attr("value", "'.date("h:ia", strtotime($result->event_etime)).'");
+                              }
+                        }
+                        jQuery("#dateandtime.time").timepicker({
+                              "showDuration": true,
+                              "timeFormat": "g:ia"
+                        });
+                        
+                        jQuery("#dateandtime.date").datepicker({
+                              "format": "yyyy/m/d",
+                              "autoclose": true
+                        });
 
-                              var dateandtimeEl = document.getElementById("dateandtime");
-                              var datepair = new Datepair(dateandtimeEl);
-                        </script>
-                        <input type="checkbox" id = "rec" name="rec" onclick="RecDiv(this)"> Recurrance<br/>
-                        <span  id="error"></span>
-                  </div>
-                  <div class="input-text" id="recu">
-                        <input type="text" id="rep" name="event_repeats" class="input" size="1" value="'.( isset( $_POST['event_repeats'] ) ? $eve_venue : $row->event_repeats ).'">
-                        <select name="event_recur" class="input" id="recop">
-                              <option class="input" value="S">None</option>
-                              <option class="input" value="W">Weeks</option>
-                              <option class="input" value="M">Months (date)</option>
-                              <option class="input" value="Y">Years</option>
-                        </select>
-                        <span  id="error"></span>
-                  </div>
-                  <div class="input-text">
-                        <input type="text" id="venue" name="venue" placeholder="Venue" value="'.( isset( $_POST['venue'] ) ? $eve_venue : $row->event_venue ).'"/><br />
-                        <span  id="error"></span>
-                  </div>
-                  <div class="input-text">';
-                        $result1 = $wpdb->get_results( "SELECT * FROM wp_event_users where Eve_id='$id'");
-                        foreach($result1 as $row1)
+                        var dateandtimeEl = document.getElementById("dateandtime");
+                        var datepair = new Datepair(dateandtimeEl);
+                  </script>
+                  <input type="checkbox" id = "rec" name="rec" onclick="RecDiv(this)"> Recurrance<br/>
+                  <span  id="error"></span>
+            </div>
+            <div class="input-text" id="recu">
+                  <input type="text" id="rep" name="event_repeats" class="input" size="1" value="'.( isset( $_POST['event_repeats'] ) ? $eve_venue : $result->event_repeats ).'">
+                  <select name="event_recur" class="input" id="recop">
+                        <option class="input" value="S">None</option>
+                        <option class="input" value="W">Weeks</option>
+                        <option class="input" value="M">Months (date)</option>
+                        <option class="input" value="Y">Years</option>
+                  </select>
+                  <span  id="error"></span>
+            </div>
+            <div class="input-text">
+                  <input type="text" id="venue" name="venue" placeholder="Venue" value="'.( isset( $_POST['venue'] ) ? $eve_venue : $result->event_venue ).'"/><br />
+                  <span  id="error"></span>
+            </div>
+            <div class="input-text">';
+                  $result1 = $wpdb->get_results( "SELECT * FROM wp_event_users where Eve_id='$id'");
+                  foreach($result1 as $row1)
+                  {
+                        $euser = $row1->Eve_User_Id;
+                        //echo "SELECT * FROM wp_users where ID='$euser'";
+                        $result2 = $wpdb->get_row( "SELECT * FROM wp_users where ID='$euser'");
+                        echo $result2->user_login.'<br/>';
+                  } 
+                  echo '
+                  <select data-placeholder="Add Guests" class="chosen-select" multiple name="traditional[]">';
+                        $result3 = $wpdb->get_results( "SELECT * FROM ".$table_prefix."users WHERE ID NOT IN (SELECT Eve_User_Id FROM ".$table_prefix."event_users WHERE Eve_id='$id')");
+                        foreach($result3 as $row3)
                         {
-                              $euser = $row1->Eve_User_Id;
-                              //echo "SELECT * FROM wp_users where ID='$euser'";
-                              $result2 = $wpdb->get_row( "SELECT * FROM wp_users where ID='$euser'");
-                              echo $result2->user_login.'<br/>';
-                        } 
+                              echo '<option value="'.$row3->ID.'">'.$row3->display_name.'</option>';
+                        }
                         echo '
-                        <select data-placeholder="Add Guests" class="chosen-select" multiple name="traditional[]">';
-                              $result3 = $wpdb->get_results( "SELECT * FROM ".$table_prefix."users WHERE ID NOT IN (SELECT Eve_User_Id FROM ".$table_prefix."event_users WHERE Eve_id='$id')");
-                              foreach($result3 as $row3)
-                              {
-                                    echo '<option value="'.$row3->ID.'">'.$row3->display_name.'</option>';
-                              }
-                              echo '
-                        </select>
-                        <script type="text/javascript">
-                              var config = {
-                                    ".chosen-select"           : {},
-                                    ".chosen-select-deselect"  : {allow_single_deselect:true},
-                                    ".chosen-select-no-single" : {disable_search_threshold:10},
-                                    ".chosen-select-no-results": {no_results_text:"Oops, nothing found!"},
-                                    ".chosen-select-width"     : {width:"95%"}
-                              }
-                              for (var selector in config) {
-                                    jQuery(selector).chosen(config[selector]);
-                              }
-                        </script>
-                        <span  id="error"></span>
-                  </div>
-                  <div class="input-text">
-                        <textarea placeholder="Event Description" rows="6" cols="100" name="desc">'.$row->event_desc.'</textarea>
-                        <span  id="error"></span>
-                  </div>
-                  <div class="input-text">
-                        <input type="submit" name="submit" value="Update"/>
-                  </div>
-            </form>';
-      }
+                  </select>
+                  <script type="text/javascript">
+                        var config = {
+                              ".chosen-select"           : {},
+                              ".chosen-select-deselect"  : {allow_single_deselect:true},
+                              ".chosen-select-no-single" : {disable_search_threshold:10},
+                              ".chosen-select-no-results": {no_results_text:"Oops, nothing found!"},
+                              ".chosen-select-width"     : {width:"95%"}
+                        }
+                        for (var selector in config) {
+                              jQuery(selector).chosen(config[selector]);
+                        }
+                  </script>
+                  <span  id="error"></span>
+            </div>
+            <div class="input-text">
+                  <textarea placeholder="Event Description" rows="6" cols="100" name="desc">'.$result->event_desc.'</textarea>
+                  <span  id="error"></span>
+            </div>
+            <div class="input-text">
+                  <input type="submit" name="submit" value="Update"/>
+            </div>
+      </form>';
 }
 
 
