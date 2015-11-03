@@ -75,6 +75,7 @@ function getClient() {
     $authUrl = $client->createAuthUrl();
     printf("Open the following link in your browser:\n%s\n", $authUrl);
     print 'Enter verification code: ';
+<<<<<<< HEAD
     if($_REQUEST['code'] == '')
     {
           wp_redirect($authUrl);
@@ -86,6 +87,10 @@ function getClient() {
           $authCode = $_REQUEST['code'];
     }
   
+=======
+    $authCode = trim(fgets(STDIN));
+
+>>>>>>> 7c2a9c42b16d5221e70436eddb59600de730cca6
     // Exchange authorization code for an access token.
     $accessToken = $client->authenticate($authCode);
 
@@ -163,6 +168,7 @@ $event = new Google_Service_Calendar_Event(array(
   'recurrence' => array(
     $google_recur
   ),
+  
   'attendees' => array(
     array('email' => $attendee->user_email)
   ),
@@ -176,9 +182,12 @@ $event = new Google_Service_Calendar_Event(array(
 ));
 
 $calendarId = $attendee->user_email;
+<<<<<<< HEAD
 //echo $calendarId;
 //die;
 
+=======
+>>>>>>> 7c2a9c42b16d5221e70436eddb59600de730cca6
 $event = $service->events->insert($calendarId, $event);
 wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me?status=added');
 exit;
