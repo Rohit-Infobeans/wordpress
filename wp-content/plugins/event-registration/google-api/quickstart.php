@@ -29,7 +29,7 @@ function getClient() {
     $authUrl = $client->createAuthUrl();
     printf("Open the following link in your browser:\n%s\n", $authUrl);
     print 'Enter verification code: ';
-    $authCode = '4/mEixu4dxHRt2KVgcUmxR8WoBTVVEfNZ7nw1EQV1lnDM';//trim(fgets(STDIN));
+    $authCode = trim(fgets(STDIN));
 
     // Exchange authorization code for an access token.
     $accessToken = $client->authenticate($authCode);
@@ -91,6 +91,7 @@ $event = new Google_Service_Calendar_Event(array(
   'recurrence' => array(
     'RRULE:FREQ=DAILY;COUNT=1'
   ),
+  
   'attendees' => array(
     array('email' => $attendee->user_email)
   ),
@@ -103,7 +104,7 @@ $event = new Google_Service_Calendar_Event(array(
   ),
 ));
 
-$calendarId = 'primary';
+$calendarId = $attendee->user_email;
 $event = $service->events->insert($calendarId, $event);
 wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me?status=added');
 exit;
