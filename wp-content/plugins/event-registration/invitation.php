@@ -148,7 +148,7 @@ function pending_invitaion_list()
                         $id = $row->id;
                         $eveid = $row->Eve_id;
                         $todays_date = date('Y-m-d');
-                        $result2 = $wpdb->get_results("Select * from ".$eventtable." where event_id = '$eveid'");
+                        $result2 = $wpdb->get_results("Select * from ".$eventtable." where event_id = '$eveid' AND event_status='0'");
                         //echo $wpdb->last_query;
                         //die;
                         foreach($result2 as $row2)
@@ -164,7 +164,7 @@ function pending_invitaion_list()
                                     <td>'.$row2->event_venue.'</td>
                                     <td>Date: '.$row2->event_begin.'<br/>Time: '.$start_time.'</td>
                                     <td>Date: '.$row2->event_end.'<br/>Time: '.$end_time.'</td>
-                                    <td class="center"><a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=yes&id='.$id.'&uid='.$cuid.'" class="links">Accepted</a>/<a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=no&id='.$id.'&uid='.$cuid.'" class="links">Decline</a></td>
+                                    <td class="center"><a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=yes&id='.$eveid.'&uid='.$cuid.'" class="links">Accepted</a>/<a href="'.site_url().'/index.php/customer-area/pages/pending-invitations?status=no&id='.$eveid.'&uid='.$cuid.'" class="links">Decline</a></td>
                               </tr>';}
                         }
                   }

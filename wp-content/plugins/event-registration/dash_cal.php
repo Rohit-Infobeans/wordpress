@@ -77,19 +77,60 @@ function dashboard_calendar1()
       foreach($event_user as $row)
       {
             $eveid = $row->Eve_id;
-            $events = $wpdb->get_results( "SELECT event_title, CONCAT(`event_begin`,'T',`event_stime`) as start, CONCAT(`event_end`,'T',`event_etime`) as end FROM ".$eventtable." where event_id='$eveid' AND event_status='0'");
+            $events = $wpdb->get_row( "SELECT event_title, CONCAT(`event_begin`,'T',`event_stime`) as start, CONCAT(`event_end`,'T',`event_etime`) as end, event_repeats as id , event_recur FROM ".$eventtable." where event_id='$eveid' AND event_status='0'");
             $rows = array(); //This is used as an array for collecting event information in form of associated array
-            foreach($events as $row1)
+            $rep = $events->id;
+            $recur = $events->event_recur;
+            if($rep>0 && $recur !='S')
             {
-                        $rows[] = $row1;
+                  if($recur == 'W')
+                  {
+                        $rows[] = $events;
+                        for($x=0;$x<$rep;$x++)
+                        {
+                              $rows = array();
+                              $rows[] = $events;
+                              $data .=  json_encode($rows);
+                              $stime = explode('T',$events->start);
+                              $etime = explode('T',$events->end);
+                              $events->start = date("Y-m-d", strtotime(date("Y-m-d", strtotime($events->start)) . " + 7 day"))."T".$stime[1];
+                              $events->end = date("Y-m-d", strtotime(date("Y-m-d", strtotime($events->end)) . " + 7 day"))."T".$etime[1];
+                        }
+                  }
+                  else if($recur == 'M')
+                  {
+                        $rows[] = $events;
+                        for($x=0;$x<$rep;$x++)
+                        {
+                              $rows = array();
+                              $rows[] = $events;
+                              $data .=  json_encode($rows);
+                              $stime = explode('T',$events->start);
+                              $etime = explode('T',$events->end);
+                              $events->start = date("Y-m-d", strtotime(date("Y-m-d", strtotime($events->start)) . " + 1 month "))."T".$stime[1];
+                              $events->end = date("Y-m-d", strtotime(date("Y-m-d", strtotime($events->end)) . " + 1 month "))."T".$etime[1];
+                        }
+                  }else
+                  {
+                        $rows[] = $events;
+                        for($x=0;$x<$rep;$x++)
+                        {
+                              $rows = array();
+                              $rows[] = $events;
+                              $data .=  json_encode($rows);
+                              $stime = explode('T',$events->start);
+                              $etime = explode('T',$events->end);
+                              $events->start = date("Y-m-d", strtotime(date("Y-m-d", strtotime($events->start)) . " + 1 year"))."T".$stime[1];
+                              $events->end = date("Y-m-d", strtotime(date("Y-m-d", strtotime($events->end)) . " + 1 year"))."T".$etime[1];
+                        }
+                  }
             }
-            //echo gettype($rows);
-            //print_r ($rows);
-            //$rows[0]->title = $rows[0]->title."This is a test";
-            //echo '<br/>'.$rows[0]->title;
-
-            //$rows['title'] = $rows['title']."This is a test";  
-            $data .=  json_encode($rows);
+            else
+            {
+                  $rows[] = $events;
+                  $data .=  json_encode($rows);
+            }
+            //For convertting array into JSON data
       }
       $data =  str_replace("][",",",$data);
       $data =  str_replace(",,"," ",$data);
@@ -102,7 +143,7 @@ function dashboard_calendar1()
                         header: 
                         {
                               left: 'prev,next today',
-                              center: 'title',
+                              center: 'event_title',
                               right: 'month,agendaWeek,agendaDay'
                         },
                         defaultDate: new Date(),
@@ -113,7 +154,7 @@ function dashboard_calendar1()
                   });
                   
             });
-      </script>
+      </script> 
       <div id="calendar"></div>
 <?php 
 }
