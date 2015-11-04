@@ -50,8 +50,8 @@ define( 'BLS_LOCATION',     2 ); //used to change location of login form on the 
 define( 'BLS_FULL_SCREEN',  true ); // if using a repeatable background image, set this to false.
 
 define( 'BLS_BG_IMG',       'default-img.jpg' ); // place your 'background'      image in the '/assets/i/background_image' folder.
-define( 'BLS_HDR_LOGO',     'header.png' );      // place your 'header logo'     image in the '/assets/i/logo_main'        folder.
-define( 'BLS_RHDR_LOGO',    'header-sm.png' );   // place your 'responsive logo' image in the '/assets/i/logo_responsive'  folder.
+     // place your 'header logo'     image in the '/assets/i/logo_main'        folder.
+//define( 'BLS_RHDR_LOGO',    'header-sm.png' );   // place your 'responsive logo' image in the '/assets/i/logo_responsive'  folder.
 
 /* --------------------------------------------------------------------------------------------- */
 
@@ -122,9 +122,9 @@ class Branded_Login_Screen
 		}
 		?>
 
-		<style> .login h1 a { background:url(<?php echo BLS_HDR_DIR . '/' . BLS_HDR_LOGO; ?>) no-repeat scroll center top transparent; } </style>
+		
 
-		<style> @media all and (max-width: 360px), (max-height: 465px){ .login h1 a { background:url(<?php echo BLS_RHDR_DIR . '/' . BLS_RHDR_LOGO; ?>) no-repeat scroll center top transparent; width: 260px; height: 67px; } } </style>
+		
 		<link rel="stylesheet" id="custom_button_css"  href="<?php echo plugins_url( '/assets/c/custom-button.css', __FILE__ ); ?>" type="text/css" media="all" />
 		<link rel="stylesheet" id="branded_login_css"  href="<?php echo plugins_url( '/assets/c/branded-login-screen.css', __FILE__ ); ?>" type="text/css" media="all" />
 		<?php
@@ -209,13 +209,7 @@ class Branded_Login_Screen
 		$plugin = plugin_basename( __FILE__ );
 
 		// create link
-		if ( $file == $plugin ) {
-			return array_merge(
-				$links,
-				array( '<strong><a href="http://brandedlogin.kerrywebster.com">Get the PRO Version</a></strong>' )
-			);
-		}
-		return $links;
+		
 	}
 
 /*------------------------------------------------------------------------------------*/
