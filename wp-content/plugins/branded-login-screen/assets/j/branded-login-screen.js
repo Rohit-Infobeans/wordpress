@@ -7,7 +7,7 @@ jQuery(document).ready(function( $ ) {
 	$('form#resetpassform').prepend('<h2>Enter your new password below.</h2><br class="clear">');
 
 	$('form#registerform').prepend('<h2>Create your own personalized account. A password will be<br\>e-mailed to you.</h2><br class="clear">');
-	$('form').prepend('<p class="ver"><a href="http://brandedlogin.kerrywebster.com">Branded Login Screen 3.2</a></p>');
+	
 
 	//TODO: make the alert boxes look prettier. :)
 

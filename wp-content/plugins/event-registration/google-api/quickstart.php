@@ -75,6 +75,7 @@ function getClient() {
     $authUrl = $client->createAuthUrl();
     printf("Open the following link in your browser:\n%s\n", $authUrl);
     print 'Enter verification code: ';
+
     if($_REQUEST['code'] == '')
     {
           wp_redirect($authUrl);
@@ -85,7 +86,7 @@ function getClient() {
     {
           $authCode = $_REQUEST['code'];
     }
-  
+
     // Exchange authorization code for an access token.
     $accessToken = $client->authenticate($authCode);
 
