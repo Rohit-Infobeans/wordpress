@@ -64,7 +64,6 @@ function all_event_list()
       }
 }
 
-
 function created_event()
 {
       global $wpdb, $table_prefix;
@@ -73,6 +72,14 @@ function created_event()
             echo '
             <script>
                   alert("Event added toy your google calendar");
+            </script>
+            ';
+      }
+      else if($_GET['status']=='not')
+      {
+            echo '
+            <script>
+                  alert("Event not available");
             </script>
             ';
       }

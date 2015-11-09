@@ -435,8 +435,6 @@ function edit_event()
       edit_registration_form($eve_title, $eve_sdate, $eve_stime, $eve_tdate, $eve_ttime, $repeat, $recur, $eve_venue, $eve_users, $desc);
 }
 
-
-
 //Function to updating event information
 function  complete_editeve($title, $sdate, $stime, $tdate, $ttime, $repeat, $recur, $venue, $users, $desc, $status) 
 {
@@ -697,7 +695,6 @@ function edit_registration_form($eve_title, $eve_sdate, $eve_stime, $eve_tdate, 
             </div>
       </form>';
 }
-
 
 //Function for server side validations
 function registration_validation( $eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repeat, $recur, $eve_venue, $eve_users, $desc)  

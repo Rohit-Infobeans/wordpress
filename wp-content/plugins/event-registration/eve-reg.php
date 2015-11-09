@@ -1,11 +1,11 @@
 <?php
 /*
-      Plugin Name: Custom Registration
-      Plugin URI:
+      Plugin Name: Event Management
+      Plugin URI: http://www.infobeans.com
       Description: 
-      Version:
+      Version: 1.0.0
       Author: Infobeans
-      Author URI: 
+      Author URI: http://www.infobeans.com
 */
 //Used for including other php files
 
