@@ -23,6 +23,17 @@ define('SCOPES', implode(' ', array(
       $eventToken =  $_REQUEST['eid'];
 	   
       if(!file_exists(dirname($eventPath)))
+=======
+* Returns an authorized API client.
+* @return Google_Client the authorized client object
+*/
+global $wpdb;
+if(!empty($_REQUEST['uid'])&&!empty($_REQUEST['eid']))
+{
+      $current_user = wp_get_current_user();
+      $cid = $current_user->ID;
+      if($cid == 0)
+>>>>>>> 1d18e59e8da8c8ff9f38075bd51dd70733b94eba
       {
             wp_redirect('http://my.ibwp.com/');
             exit;
@@ -43,6 +54,7 @@ define('SCOPES', implode(' ', array(
             }
             file_put_contents($eventPath, $eventToken);
       }
+<<<<<<< HEAD
     file_put_contents($eventPath, $eventToken);
  }
  
@@ -104,9 +116,69 @@ function getClient() {
     {
           $authCode = $_REQUEST['code'];
     }
+=======
+}
+//for creating .ics file
 
+function getClient() 
+{
+      global $fileName;
+      $client = new Google_Client();
+      $client->setApplicationName(APPLICATION_NAME);
+      $client->setScopes(SCOPES);
+      $client->setAuthConfigFile(CLIENT_SECRET_PATH);
+      $client->setAccessType('offline');
 
-        
+      // Load previously authorized credentials from a file.
+      $credentialsPath = expandHomeDirectory(CREDENTIALS_PATH);
+      if (file_exists($credentialsPath)) 
+      {
+            $credential_Info = @fopen($credentialsPath,"r+");
+            @ftruncate($credential_Info, 0);
+            // Request authorization from the user.
+            $authUrl = $client->createAuthUrl();
+            printf("Open the following link in your browser:\n%s\n", $authUrl);
+            print 'Enter verification code: ';
+            if($_REQUEST['code'] == '')
+            {
+                  wp_redirect($authUrl);
+                  $authCode ='';
+                  exit;
+            }
+            else
+            {
+                  $authCode = $_REQUEST['code'];
+            }
+
+            // Exchange authorization code for an access token.
+            $accessToken = $client->authenticate($authCode);
+
+            // Store the credentials to disk.
+            if(!file_exists(dirname($credentialsPath))) 
+            {
+                  mkdir(dirname($credentialsPath), 0700, true);
+            }
+            file_put_contents($credentialsPath, $accessToken);
+            printf("Credentials saved to %s\n", $credentialsPath);
+      } 
+      else 
+      {
+            // Request authorization from the user.
+            $authUrl = $client->createAuthUrl();
+            printf("Open the following link in your browser:\n%s\n", $authUrl);
+            print 'Enter verification code: ';
+>>>>>>> 1d18e59e8da8c8ff9f38075bd51dd70733b94eba
+
+            if($_REQUEST['code'] == '')
+            {
+                  wp_redirect($authUrl);
+                  $authCode ='';
+                  exit;
+            }
+            else
+            {
+                  $authCode = $_REQUEST['code'];
+            }
 
             // Exchange authorization code for an access token.
             $accessToken = $client->authenticate($authCode);
@@ -146,13 +218,18 @@ function expandHomeDirectory($path)
 //For database values
 global $wpdb;
 $current_user = wp_get_current_user();
-
+<<<<<<< HEAD
       
       $uid = $current_user->ID;
 
       $file = '~/.credentials/'.$uid.'.txt';
       $eventPath = expandHomeDirectory($file);
+=======
 
+$uid = $current_user->ID;
+$file = '~/.credentials/'.$uid.'.txt';
+$eventPath = expandHomeDirectory($file);
+>>>>>>> 1d18e59e8da8c8ff9f38075bd51dd70733b94eba
 $eid =  file_get_contents($eventPath);
 
 $result = $wpdb->get_row("Select * ,CONCAT(`event_begin`,'T',`event_stime`) as start, CONCAT(`event_end`,'T',`event_etime`) as end from wp_calendar WHERE event_id='$eid'");
@@ -218,7 +295,7 @@ else
       wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me?status=not');
       exit;
 }
-
+<<<<<<< HEAD
 else{$google_recur = 'RRULE:FREQ=YEARLY;COUNT='.$rep;}
 echo $google_recur."<br/>".$rep;
 $attendee = $wpdb->get_row("Select user_email from wp_users where ID='$uid'");
@@ -256,3 +333,5 @@ $calendarId = $attendee->user_email;
 $event = $service->events->insert($calendarId, $event);
 wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me?status=added');
 exit;
+=======
+>>>>>>> 1d18e59e8da8c8ff9f38075bd51dd70733b94eba

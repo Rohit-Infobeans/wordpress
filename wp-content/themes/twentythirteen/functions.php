@@ -28,6 +28,7 @@
  *
  * @see twentythirteen_content_width() for template-specific adjustments.
  */
+
 if ( ! isset( $content_width ) )
 	$content_width = 604;
 
@@ -555,3 +556,4 @@ function twentythirteen_customize_preview_js() {
 	wp_enqueue_script( 'twentythirteen-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20141120', true );
 }
 add_action( 'customize_preview_init', 'twentythirteen_customize_preview_js' );
+

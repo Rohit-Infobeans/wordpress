@@ -207,8 +207,6 @@ END:VCALENDAR';
                         $eveid = $row->Eve_id;
                         $todays_date = date('Y-m-d');
                         $result2 = $wpdb->get_results("Select * from ".$eventtable." where event_id = '$eveid' AND event_status='0'");
-                        //echo $wpdb->last_query;
-                        //die;
                         foreach($result2 as $row2)
                         {
                               $start_time = date('h:ia', strtotime($row2->event_stime));

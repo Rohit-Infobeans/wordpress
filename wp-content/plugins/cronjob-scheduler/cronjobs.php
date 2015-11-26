@@ -55,23 +55,19 @@ function automail ()
                                           </div>
                                           <div style="width:550px; padding:0 20px 20px 20px; background:#fff; margin:0 auto; border:3px #000 solid;
                                                 moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px; color:#454545;line-height:1.5em; " id="email_content">
-
                                                 <h1 style="padding:5px 0 0 0; font-family:georgia;font-weight:500;font-size:24px;color:#000;border-bottom:1px solid #bbb">
                                                       This is the remainder  for '.$etitle.'.
                                                 </h1>
-
                                                 <p>
                                                       Related informations <br/>Venue: '
                                                       .$evenue.'<br/>Event Starts at: '.$begin.' '.$mtime.'<br/>Event ends at: '.$end.'<br/>Event description: '.$edesc.'
                                                 </p>
-                                                 				
                                           </div>
                                     </div>';
                                     $headers= "MIME-Version: 1.0\n" ."Content-Type: text/html; charset=\"" . get_option('blog_charset') . "\"\n";
                                     wp_mail($to, $subject, $message, $headers);
                               }
                   }
-                  //echo '<script>alert("'.$formatDate.' '.$date.'")</script>';
             }
       }
 } 

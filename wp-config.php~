@@ -27,7 +27,7 @@ define('DB_NAME', 'gittraining');
 define('DB_USER', 'root');
 
 /** MySQL database password */
-define('DB_PASSWORD', 'infoserver123');
+define('DB_PASSWORD', '');
 
 /** MySQL hostname */
 define('DB_HOST', 'localhost');

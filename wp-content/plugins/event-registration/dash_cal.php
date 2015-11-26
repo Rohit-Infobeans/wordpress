@@ -78,11 +78,12 @@ function dashboard_calendar1()
       {
             $eveid = $row->Eve_id;
             $events = $wpdb->get_row( "SELECT event_title, CONCAT(`event_begin`,'T',`event_stime`) as start, CONCAT(`event_end`,'T',`event_etime`) as end, event_repeats as id , event_recur FROM ".$eventtable." where event_id='$eveid' AND event_status='0'");
-            $rows = array(); //This is used as an array for collecting event information in form of associated array
+            
             $rep = $events->id;
             $recur = $events->event_recur;
             if($rep>0 && $recur !='S')
             {
+                  $rows = array(); //This is used as an array for collecting event information in form of associated array
                   if($recur == 'W')
                   {
                         $rows[] = $events;
@@ -110,7 +111,8 @@ function dashboard_calendar1()
                               $events->start = date("Y-m-d", strtotime(date("Y-m-d", strtotime($events->start)) . " + 1 month "))."T".$stime[1];
                               $events->end = date("Y-m-d", strtotime(date("Y-m-d", strtotime($events->end)) . " + 1 month "))."T".$etime[1];
                         }
-                  }else
+                  }
+                  else
                   {
                         $rows[] = $events;
                         for($x=0;$x<$rep;$x++)
@@ -127,6 +129,7 @@ function dashboard_calendar1()
             }
             else
             {
+                  $rows = array(); //This is used as an array for collecting event information in form of associated array
                   $rows[] = $events;
                   $data .=  json_encode($rows);
             }
@@ -140,17 +143,34 @@ function dashboard_calendar1()
             {
                   jQuery('#calendar').fullCalendar(
                   {
-                        header: 
-                        {
-                              left: 'prev,next today',
-                              center: 'event_title',
-                              right: 'month,agendaWeek,agendaDay'
-                        },
-                        defaultDate: new Date(),
-                        editable: false,
-                        eventLimit: true, // allow "more" link when too many events
-                        events: <?php echo $data;?>
-
+                        <?php 
+                              if(!empty($data))
+                              {?>
+                                    header: 
+                                    {
+                                          left: 'prev,next today',
+                                          center: 'event_title',
+                                          right: 'month,agendaWeek,agendaDay'
+                                    },
+                                    defaultDate: new Date(),
+                                    editable: false,
+                                    eventLimit: true, // allow "more" link when too many events
+                                    events: <?php echo $data;?>
+                              <?php }
+                              else
+                              {?>
+                                    header: 
+                                    {
+                                          left: 'prev,next today',
+                                          center: 'event_title',
+                                          right: 'month,agendaWeek,agendaDay'
+                                    },
+                                    defaultDate: new Date(),
+                                    editable: false,
+                                    eventLimit: true
+                             <?php }
+                        ?>
+                        
                   });
                   
             });
