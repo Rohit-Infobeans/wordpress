@@ -134,3 +134,4 @@ function dashboard_calendar1_shortcode()
       dashboard_calendar1();
       return ob_get_clean();
 }
+

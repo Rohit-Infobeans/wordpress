@@ -93,10 +93,68 @@ function pending_invitaion_list()
                   'Eve_id'=> $id,
                   'Eve_User_Id' => $uid
             );
-
+			
             $wpdb->update($usertable, $data, $whe, $formats);
-            wp_redirect(site_url().'/wp-content/plugins/event-registration/google-api/quickstart.php?uid='.$uid.'&eid='.$id.'&code=');
-            exit;
+			$resu = $wpdb->get_row("Select user_email from wp_users where ID='$uid'");
+
+			$user_email = $resu->user_email;
+
+			$mail_server = explode("@", $user_email);
+			if($mail_server[1] == 'gmail.com')
+			{
+				wp_redirect(site_url().'/wp-content/plugins/event-registration/google-api/quickstart.php?uid='.$uid.'&eid='.$id.'&code=');
+				exit;
+			}
+			else
+			{
+
+$res = $wpdb->get_row("Select * ,CONCAT(`event_begin`,'T',`event_stime`) as start, CONCAT(`event_end`,'T',`event_etime`) as end from wp_calendar WHERE event_id='$id'");
+$e_author=$res->event_author;
+$date = str_replace('-', '', $res->start);
+$dtime = str_replace(':', '', $date);
+$date1 = str_replace('-', '', $res->end);
+$dtime1 = str_replace(':', '', $date1);
+$result=$wpdb->get_row("select * from wp_users WHERE ID='$e_author'");
+$message='BEGIN:VCALENDAR
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+DTSTART:'.$dtime.'
+DTEND:'.$dtime1.'
+DTSTAMP:20110525T075116Z
+ORGANIZER;CN='.$result->display_name.':mailto:'.$result->user_email.'
+UID:12345678
+DESCRIPTION:'.$res->eve_desc.'
+LOCATION: '.$res->event_venue.'
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:'.$res->event_title.'
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR';
+
+				/*Setting the header part, this is important */
+				$headers = "From: From Name <From Mail>\n";
+				$headers .= "MIME-Version: 1.0\n";
+				$headers .= "Content-Type: text/calendar; method=REQUEST;\n";
+				$headers .= 'charset="UTF-8"';
+				$headers .= "\n";
+				$headers .= "Content-Transfer-Encoding: 7bit";
+
+				/*mail content , attaching the ics detail in the mail as content*/
+				$subject = "Meeting Subject";
+				$subject = html_entity_decode($subject, ENT_QUOTES, 'UTF-8');
+
+				/*mail send*/
+				if(wp_mail($user_email, $subject, $message, $headers)) {
+
+					echo "sent";
+				}else {
+					echo "error";
+				}
+
+			}
       }
       else if($_GET['status'] == "no")
       {

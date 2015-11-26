@@ -1,6 +1,7 @@
 <?php
 require 'vendor/autoload.php';
 include_once($_SERVER['DOCUMENT_ROOT'].'/wp-config.php' );
+
 define('APPLICATION_NAME', 'Google Calendar API PHP Quickstart');
 define('CREDENTIALS_PATH', '~/.credentials/calendar-php-quickstart.json');
 define('CLIENT_SECRET_PATH', 'client_secret.json');
@@ -15,9 +16,11 @@ define('SCOPES', implode(' ', array(
  global $wpdb;
  if(!empty($_REQUEST['uid'])&&!empty($_REQUEST['eid']))
  {
+	 
       $fileName = '~/.credentials/'.$_REQUEST['uid'].'.txt';
       $eventPath = expandHomeDirectory($fileName);
       $eventToken =  $_REQUEST['eid'];
+	   
       if(!file_exists(dirname($eventPath)))
       {
             mkdir(dirname($eventPath), 0700, true);
@@ -27,11 +30,13 @@ define('SCOPES', implode(' ', array(
             $eventInfo = @fopen($fileName,"r+");
             @ftruncate($eventInfo, 0);
       }
-      file_put_contents($eventPath, $eventToken);
+    file_put_contents($eventPath, $eventToken);
  }
  
+ 
+ 
 function getClient() {
-      global $fileName;
+  global $fileName;
   $client = new Google_Client();
   $client->setApplicationName(APPLICATION_NAME);
   $client->setScopes(SCOPES);
@@ -42,32 +47,32 @@ function getClient() {
   $credentialsPath = expandHomeDirectory(CREDENTIALS_PATH);
   if (file_exists($credentialsPath)) 
   {
-      $credential_Info = @fopen($credentialsPath,"r+");
-      @ftruncate($credential_Info, 0);
-      // Request authorization from the user.
-      $authUrl = $client->createAuthUrl();
-      printf("Open the following link in your browser:\n%s\n", $authUrl);
-      print 'Enter verification code: ';
-      if($_REQUEST['code'] == '')
-      {
-          wp_redirect($authUrl);
-          $authCode ='';
-          exit;
-      }
-      else
-      {
-          $authCode = $_REQUEST['code'];
-      }
+    $credential_Info = @fopen($credentialsPath,"r+");
+    @ftruncate($credential_Info, 0);
+    // Request authorization from the user.
+    $authUrl = $client->createAuthUrl();
+    printf("Open the following link in your browser:\n%s\n", $authUrl);
+    print 'Enter verification code: ';
+    if($_REQUEST['code'] == '')
+    {
+       wp_redirect($authUrl);
+       $authCode ='';
+       exit;
+    }
+	else
+	{
+	  $authCode = $_REQUEST['code'];
+	}
 
-      // Exchange authorization code for an access token.
-      $accessToken = $client->authenticate($authCode);
+	// Exchange authorization code for an access token.
+	$accessToken = $client->authenticate($authCode);
 
-      // Store the credentials to disk.
-      if(!file_exists(dirname($credentialsPath))) {
-      mkdir(dirname($credentialsPath), 0700, true);
-      }
-      file_put_contents($credentialsPath, $accessToken);
-      printf("Credentials saved to %s\n", $credentialsPath);
+	// Store the credentials to disk.
+	if(!file_exists(dirname($credentialsPath))) {
+	mkdir(dirname($credentialsPath), 0700, true);
+	}
+	file_put_contents($credentialsPath, $accessToken);
+	printf("Credentials saved to %s\n", $credentialsPath);
   } 
   else 
   {
@@ -125,6 +130,7 @@ global $wpdb;
 $current_user = wp_get_current_user();
       
       $uid = $current_user->ID;
+
       $file = '~/.credentials/'.$uid.'.txt';
       $eventPath = expandHomeDirectory($file);
 $eid =  file_get_contents($eventPath);
@@ -154,12 +160,12 @@ $event = new Google_Service_Calendar_Event(array(
   'location' => $result->event_venue,
   'description' => $result->event_desc,
   'start' => array(
-    'dateTime' => $result->start,
-    'timeZone' => 'Asia/Kolkata',
+	'dateTime' => $result->start,
+	'timeZone' => 'Asia/Kolkata',
   ),
   'end' => array(
-    'dateTime' => $result->end,
-    'timeZone' => 'Asia/Kolkata',
+	'dateTime' => $result->end,
+	'timeZone' => 'Asia/Kolkata',
   ),
   'recurrence' => array(
     $google_recur
@@ -178,6 +184,7 @@ $event = new Google_Service_Calendar_Event(array(
 ));
 
 $calendarId = $attendee->user_email;
+
 
 $event = $service->events->insert($calendarId, $event);
 wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me?status=added');

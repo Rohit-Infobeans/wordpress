@@ -59,6 +59,8 @@ function wptuts_scripts_load_cdn()
 }
 add_action( 'wp_enqueue_scripts', 'wptuts_scripts_load_cdn' );
 
+
+
 //Function resplonsible for calling functions (for displaying event registration form, serverside validation and inserting in database)
 function custom_registration_function() 
 {
@@ -90,11 +92,16 @@ function custom_registration_function()
             //For calling registration_validation function
             registration_validation($title, $sdate, $stime, $tdate, $ttime, $repeat, $recur, $venue, $users, $desc);
             //After completing validation complete_registration is used to call another function to insert data in database if there is no error
-            complete_registration( $title, $sdate, $tdate, $stime, $ttime, $repeat, $recur, $venue, $users, $desc, $status);    
+            complete_registration( $title, $sdate, $tdate, $stime, $ttime, $repeat, $recur, $venue, $users, $desc, $status); 
+						
       }
       
       registration_form( $eve_title, $eve_sdate, $eve_tdate, $eve_stime, $eve_ttime, $repeat, $recur, $eve_venue, $eve_users, $desc);
 }
+	
+	
+
+
 
 //Function to insert data of new event in database table
 function complete_registration($title, $sdate, $tdate,$stime, $ttime, $repeat, $recur, $venue, $users, $desc, $status)
@@ -196,15 +203,19 @@ function complete_registration($title, $sdate, $tdate,$stime, $ttime, $repeat, $
                               </div>';
                               $subject = $setting['subject'];
                               $headers= "MIME-Version: 1.0\n" ."Content-Type: text/html; charset=\"" . get_option('blog_charset') . "\"\n";
-                              wp_mail( $to,  $subject , wpautop( $message  ), $headers );
+							  $attachments = array( WP_CONTENT_DIR . '/plugins/event-registration/google-api/.credentials/invite.ics' );
+                              wp_mail( $to,  $subject , wpautop( $message  ), $headers);
                         } 
                   }
             }
             //To redirect to another page
+			
             wp_redirect(site_url().'/index.php/customer-area/events-lists/created-by-me');
             exit;
       }
 }
+
+
 
 function check_slot() 
 {
@@ -381,8 +392,7 @@ function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repe
                         $result = $wpdb->get_results( "SELECT * FROM wp_users where ID != '$cid'  "); /*mulitple row results can be pulled from the database with get_results function and outputs an object which is stored in $result */
                         foreach($result as $row)
                         {
-                              echo '<option value="'.$row->ID.'">'.$row->display_name.'</option>';
-                              
+                              echo '<option value="'.$row->ID.'">'.$row->display_name.'</option>';   
                         }
                         echo '
                   </select>
@@ -409,6 +419,7 @@ function registration_form($eve_title, $eve_sdate, $eve_tdate, $eve_stime, $repe
             </div>
       </form>';
 }
+	
 
 function edit_event()
 {
@@ -549,8 +560,8 @@ function  complete_editeve($title, $sdate, $stime, $tdate, $ttime, $repeat, $rec
                                     </div>
                               </div>';
                               $subject = $setting['subject'];
-                              $headers= "MIME-Version: 1.0\n" ."Content-Type: text/html; charset=\"" . get_option('blog_charset') . "\"\n";
-                              wp_mail( $to,  $subject , wpautop( $message  ), $headers );
+							  $headers= "MIME-Version: 1.0\n" ."Content-Type: text/html; charset=\"" . get_option('blog_charset') . "\"\n"; 
+							  wp_mail( $to,  $subject , wpautop( $message  )  ,$headers);
                         } 
                   }
             }
